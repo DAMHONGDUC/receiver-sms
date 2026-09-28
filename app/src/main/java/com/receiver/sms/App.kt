@@ -1,8 +1,25 @@
 package com.receiver.sms
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
+import com.receiver.sms.core.bootstrap.AppBootstrap
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
-// design: https://www.pinterest.com/pin/sms-management-app--566046246911904364/
 @HiltAndroidApp
-class App : Application()
+class App : Application(), Configuration.Provider {
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var bootstrap: AppBootstrap
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
+
+    override fun onCreate() {
+        super.onCreate()
+        bootstrap.run()
+    }
+}

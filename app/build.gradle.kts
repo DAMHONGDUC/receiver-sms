@@ -1,111 +1,75 @@
 import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.hiltAndroid)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.room)
 }
 
-fun loadProperties(file: File): Properties {
-    val properties = Properties()
-    if (file.exists()) {
-        properties.load(file.inputStream())
-    }
-    return properties
+// Release signing is optional: it is read from local.properties only when present.
+val localProperties: Properties = Properties().apply {
+    val file: File = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
-// file
-val localPropertiesPath = rootProject.file("local.properties")
-val devPropertiesPath = rootProject.file("dev.properties")
-val prodPropertiesPath = rootProject.file("prod.properties")
-// Load local.properties
-val localProperties = loadProperties(localPropertiesPath)
-// Read properties values
-val keyAliasProp = localProperties.getProperty("keyAlias") ?: ""
-val keyPasswordProp = localProperties.getProperty("keyPassword") ?: ""
-val storeFileProp = localProperties.getProperty("storeFile") ?: ""
-val storePasswordProp = localProperties.getProperty("storePassword") ?: ""
-val compileSdkProp = localProperties.getProperty("compileSdk")?.toIntOrNull() ?: 34
-val minSdkProp = localProperties.getProperty("minSdk")?.toIntOrNull() ?: 24
-val namespaceProp = localProperties.getProperty("namespace") ?: ""
-val applicationIdProp = localProperties.getProperty("applicationId") ?: ""
-val versionCodeProp = localProperties.getProperty("versionCode")?.toIntOrNull() ?: 1
-val versionNameProp = localProperties.getProperty("versionName") ?: "1.0"
-val targetSdkProp = localProperties.getProperty("targetSdk")?.toIntOrNull() ?: 34
+val releaseStoreFile: String? = localProperties.getProperty("storeFile")
 
 android {
-    namespace = namespaceProp
-    compileSdk = compileSdkProp
+    namespace = "com.receiver.sms"
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
-        applicationId = applicationIdProp
-        minSdk = minSdkProp
-        targetSdk = targetSdkProp
-        versionCode = versionCodeProp
-        versionName = versionNameProp
+        applicationId = "com.receiver.sms"
+        minSdk = 26
+        targetSdk = 37
+        versionCode = 2
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
     }
 
     signingConfigs {
-        create("release") {
-            storeFile = file(storeFileProp)
-            storePassword = storePasswordProp
-            keyAlias = keyAliasProp
-            keyPassword = keyPasswordProp
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = localProperties.getProperty("storePassword")
+                keyAlias = localProperties.getProperty("keyAlias")
+                keyPassword = localProperties.getProperty("keyPassword")
+            }
         }
     }
 
     buildTypes {
-        getByName("release") {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
-    // Config multi flavor
-    flavorDimensions += "environment"
-
-    productFlavors {
-        create("dev") {
-            dimension = "environment"
-            versionNameSuffix = "-dev"
-            resValue("string", "app_name", "SMS Receiver Call API Dev")
-            // Load properties from dev.properties
-            val devProperties = loadProperties(file(devPropertiesPath))
-            buildConfigField("String", "ENV", "\"${devProperties["ENV"]}\"")
-            buildConfigField("String", "BASE_URL", "\"${devProperties["BASE_URL"]}\"")
-        }
-        create("prod") {
-            dimension = "environment"
-            resValue("string", "app_name", "SMS Receiver Call API")
-            // Load properties from prod.properties
-            val prodProperties = loadProperties(file(prodPropertiesPath))
-            buildConfigField("String", "ENV", "\"${prodProperties["ENV"]}\"")
-            buildConfigField("String", "BASE_URL", "\"${prodProperties["BASE_URL"]}\"")
-        }
-    }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
         buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+    testOptions {
+        unitTests.isReturnDefaultValues = true
     }
     packaging {
         resources {
@@ -114,47 +78,60 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
 dependencies {
+    // androidx core
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
-    // navigation
-    implementation(libs.androidx.navigation.compose)
-    // data
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    // network
-    implementation(libs.retrofit)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
+    implementation(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.navigation.compose)
+    // compose
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
     // di
     implementation(libs.hilt.android)
-    implementation(libs.androidx.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-    // ui
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.sonner)
-    implementation(libs.androidx.material.icons.extended)
-    implementation(libs.lazycolumnscrollbar)
-    // local storage
+    implementation(libs.androidx.hilt.work)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
+    ksp(libs.androidx.hilt.compiler)
+    // storage
     implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
-    // permission
-    implementation(libs.accompanist.permissions)
-    // multi language
-    implementation(libs.lyricist)
-    ksp(libs.lyricist.processor)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.datastore.preferences)
+    // background
+    implementation(libs.androidx.work.runtime.ktx)
+    // network + serialization
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.android)
+    // tests
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.okhttp.mockwebserver)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 }

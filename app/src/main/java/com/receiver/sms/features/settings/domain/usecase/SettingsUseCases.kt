@@ -1,0 +1,37 @@
+package com.receiver.sms.features.settings.domain.usecase
+
+import com.receiver.sms.core.logging.AppLogger
+import com.receiver.sms.features.settings.domain.model.AppSettings
+import com.receiver.sms.features.settings.domain.model.RetentionPeriod
+import com.receiver.sms.features.settings.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+
+private const val TAG = "SettingsUseCases"
+
+class ObserveSettingsUseCase @Inject constructor(private val repository: SettingsRepository) {
+    operator fun invoke(): Flow<AppSettings> = repository.settings
+}
+
+/** One entry point per setting keeps every change logged with its new value. */
+class UpdateSettingsUseCase @Inject constructor(private val repository: SettingsRepository) {
+    suspend fun forwarding(enabled: Boolean) {
+        repository.setForwardingEnabled(enabled)
+        AppLogger.i(TAG, "forwarding changed - {enabled: $enabled}")
+    }
+
+    suspend fun keepAlive(enabled: Boolean) {
+        repository.setKeepAliveEnabled(enabled)
+        AppLogger.i(TAG, "keep-alive changed - {enabled: $enabled}")
+    }
+
+    suspend fun notifyOnFailure(enabled: Boolean) {
+        repository.setNotifyOnFailure(enabled)
+        AppLogger.i(TAG, "notify on failure changed - {enabled: $enabled}")
+    }
+
+    suspend fun retention(retention: RetentionPeriod) {
+        repository.setRetention(retention)
+        AppLogger.i(TAG, "retention changed - {retention: $retention}")
+    }
+}

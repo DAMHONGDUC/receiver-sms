@@ -1,0 +1,85 @@
+package com.receiver.sms.features.calllog.presentation.detail
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import com.receiver.sms.R
+import com.receiver.sms.core.logging.AppLogger
+import com.receiver.sms.core.navigation.CallDetailRoute
+import com.receiver.sms.core.ui.UiMessage
+import com.receiver.sms.features.calllog.domain.model.CallLog
+import com.receiver.sms.features.calllog.domain.usecase.DeleteCallLogUseCase
+import com.receiver.sms.features.calllog.domain.usecase.ObserveCallLogUseCase
+import com.receiver.sms.features.dispatch.domain.usecase.RetryCallUseCase
+import com.receiver.sms.features.dispatch.domain.usecase.RetryResult
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+private const val TAG = "CallDetailViewModel"
+private const val STOP_TIMEOUT_MILLIS = 5_000L
+
+sealed interface CallDetailState {
+    data object Loading : CallDetailState
+    data object NotFound : CallDetailState
+    data class Loaded(val log: CallLog) : CallDetailState
+}
+
+sealed interface CallDetailEvent {
+    data object Deleted : CallDetailEvent
+    data class Message(val message: UiMessage) : CallDetailEvent
+}
+
+@HiltViewModel
+class CallDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    observeCallLog: ObserveCallLogUseCase,
+    private val retryCall: RetryCallUseCase,
+    private val deleteCallLog: DeleteCallLogUseCase,
+) : ViewModel() {
+    private val logId: Long = savedStateHandle.toRoute<CallDetailRoute>().id
+    private val eventChannel: Channel<CallDetailEvent> = Channel(Channel.BUFFERED)
+
+    val events: Flow<CallDetailEvent> = eventChannel.receiveAsFlow()
+    val state: StateFlow<CallDetailState> = observeCallLog(logId)
+        .map { log -> if (log == null) CallDetailState.NotFound else CallDetailState.Loaded(log) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CallDetailState.Loading)
+
+    fun onRetry() {
+        AppLogger.i(TAG, "retry tapped - {log: $logId}")
+        viewModelScope.launch {
+            val message: Int = try {
+                when (retryCall(logId)) {
+                    RetryResult.QUEUED -> R.string.detail_retry_queued
+                    RetryResult.CONFIG_DELETED -> R.string.detail_retry_config_deleted
+                    RetryResult.NOT_RETRYABLE -> R.string.detail_retry_not_possible
+                }
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "retry failed - {log: $logId}", e)
+                R.string.error_generic
+            }
+            eventChannel.send(CallDetailEvent.Message(UiMessage(message)))
+        }
+    }
+
+    fun onDelete() {
+        AppLogger.i(TAG, "delete confirmed - {log: $logId}")
+        viewModelScope.launch {
+            try {
+                deleteCallLog(logId)
+                eventChannel.send(CallDetailEvent.Deleted)
+            } catch (e: Exception) {
+                AppLogger.e(TAG, "delete failed - {log: $logId}", e)
+                eventChannel.send(CallDetailEvent.Message(UiMessage(R.string.error_generic)))
+            }
+        }
+    }
+}
