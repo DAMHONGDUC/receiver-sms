@@ -6,6 +6,7 @@
 | Declarations first, blank line, then logic | Scan-friendly functions | `CallExecution.run` |
 | Every action logs with its data via `AppLogger` | Logs answer "what was sent/returned" | `AppLogger.i(TAG, "saved - {id: $id, url: $url}")` |
 | Every `catch` logs the throwable before returning a fallback | Caught errors are otherwise invisible | `AppLogger.e(TAG, "delete failed - {id: $id}", e)` |
+| Exception: input validation where failure is the expected answer, with a comment saying so | Runs on every keystroke; logging would flood | `ApiConfigValidator.isValidUrl` |
 | No `println`, no raw `Log.*` | One logging entry point | `core/logging/AppLogger.kt` |
 | No magic numbers: spacing in `Dimens`, colours in `Palette`/`StatusColors`, limits in constants | One owner per value | `Dimens.screenGutter`, `HttpConstants.MAX_RETRIES_LIMIT` |
 | Every `Text` has an explicit `style =` from `MaterialTheme.typography` | No invisible defaults | `Text(text, style = MaterialTheme.typography.bodySmall)` |

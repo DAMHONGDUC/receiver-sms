@@ -22,4 +22,4 @@ Full picture: [docs/architecture.md](../architecture.md).
 |---|---|
 | Call the network from `SmsReceiver` or a ViewModel for real SMS | Enqueue via `CallScheduler` |
 | Add a Room foreign key from `call_logs` | History must outlive deleted configs |
-| Put constants on models/entities | `core/constants/AppConstants.kt` or the feature's own constants object |
+| Put config constants on models/entities | `core/constants/AppConstants.kt` or the feature's own constants object; only a canonical empty value or id sentinel may live in a model's `companion object` (`SmsFilter.ANY`, `ApiConfig.NEW_ID`) |
