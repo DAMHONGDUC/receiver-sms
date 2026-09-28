@@ -59,6 +59,7 @@ class ApiConfigValidator @Inject constructor() {
             Regex(pattern)
             true
         } catch (e: Exception) {
+            // Invalid input is an expected outcome here; the editor shows the error to the user.
             false
         }
     }

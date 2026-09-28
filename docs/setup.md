@@ -45,4 +45,4 @@
 |---|---|
 | Webhook URL for a server on the host machine | `http://10.0.2.2:<port>/...` |
 | Send a fake SMS | `adb emu sms send 0901234567 "Your OTP is 123456"` |
-| Follow app logs | `adb logcat -s 'SmsFwd/*'` |
+| Follow app logs | `adb logcat \| grep SmsFwd/` |
