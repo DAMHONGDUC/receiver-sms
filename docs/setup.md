@@ -85,7 +85,6 @@ All build config lives in `env/`, split by sensitivity; only `env/version.proper
 | Gitignored | Why |
 |---|---|
 | `env/*` except `version.properties` | Real values and keystores never reach git |
-| `Release/` | Exported APKs and AABs are build output |
 | `local.properties` | Only `sdk.dir`, written by Android Studio |
 
 ## First run on a device
