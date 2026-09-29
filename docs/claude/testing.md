@@ -2,7 +2,7 @@
 
 | Rule | Reason | Example |
 |---|---|---|
-| Unit tests live in `app/src/test/java/com/receiver/sms/features/<feature>/` | Mirrors source | `features/dispatch/SmsMatcherTest.kt` |
+| Unit tests live in `app/src/test/java/com/dd/sms/hook/features/<feature>/` | Mirrors source | `features/dispatch/SmsMatcherTest.kt` |
 | Shared builders in `testing/Fixtures.kt` and in-memory fakes in `testing/Fakes.kt`, never redeclared per file | One setup helper | `Fixtures.log()`, `FakeCallLogRepository` |
 | ViewModels that call `savedStateHandle.toRoute<>()` are tested under Robolectric with `SavedStateHandle(route = …)` | On plain JVM `toRoute` silently returns default args, so the test passes for the wrong reason | `ApiEditorViewModelTest` |
 | Build ViewModels after `MainDispatcherRule` starts (inside the test or `by lazy`); collect `stateIn` flows with `backgroundScope.launch(UnconfinedTestDispatcher(testScheduler))` | Field initialisers run before rules; `WhileSubscribed` needs a collector | `ApiListViewModelTest` |

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Project | Android app: incoming SMS matching a rule → call user-configured HTTP APIs. Kotlin, Compose, MVVM + clean architecture, Hilt, Room, WorkManager, OkHttp |
-| Entry points | [App.kt](app/src/main/java/com/receiver/sms/App.kt), [MainActivity.kt](app/src/main/java/com/receiver/sms/MainActivity.kt), [SmsReceiver.kt](app/src/main/java/com/receiver/sms/features/dispatch/platform/SmsReceiver.kt) |
+| Entry points | [App.kt](app/src/main/java/com/dd/sms/hook/App.kt), [MainActivity.kt](app/src/main/java/com/dd/sms/hook/MainActivity.kt), [SmsReceiver.kt](app/src/main/java/com/dd/sms/hook/features/dispatch/platform/SmsReceiver.kt) |
 
 ## Commands
 
