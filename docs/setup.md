@@ -17,7 +17,19 @@
 | Build release APK (R8) | `./gradlew :app:assembleRelease` |
 | Unit tests | `./gradlew :app:testDebugUnitTest` |
 | One test class | `./gradlew :app:testDebugUnitTest --tests '*SmsMatcherTest*'` |
+| Instrumented tests (emulator running) | `./gradlew :app:connectedDebugAndroidTest` |
+| One instrumented class | `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.receiver.sms.e2e.AppFlowTest` |
 | Lint | `./gradlew :app:lintDebug` |
+
+## Test suites
+
+| Suite | Location | Covers |
+|---|---|---|
+| Unit (JVM) | [app/src/test](../app/src/test/java/com/receiver/sms) | Domain logic, use cases, mappers, settings DataStore, ViewModels |
+| Unit (Robolectric) | Same folder, `@RunWith(RobolectricTestRunner::class)` | ViewModels that read navigation route args |
+| Room queries | [DaoTest.kt](../app/src/androidTest/java/com/receiver/sms/data/DaoTest.kt) | Every DAO query on real SQLite |
+| Worker | [ApiCallWorkerTest.kt](../app/src/androidTest/java/com/receiver/sms/work/ApiCallWorkerTest.kt) | Outcome → WorkManager result, input data, attempt number |
+| End to end | [AppFlowTest.kt](../app/src/androidTest/java/com/receiver/sms/e2e/AppFlowTest.kt) | Real app with Hilt: editor, test request, SMS → WorkManager → HTTP, retry timeline, filters, delete, settings |
 
 ## Local config (`local.properties`, gitignored)
 
