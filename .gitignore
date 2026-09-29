@@ -15,6 +15,6 @@
 local.properties
 # Build config and keystores: only the key-only template is committed.
 /env/*
-!/env/env.sample.properties
+!/env/*.sample.properties
 # Exported release APKs
 /Release/

@@ -87,7 +87,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             }
             PlaceholderHelpCard()
             SectionCard(title = stringResource(R.string.settings_about), icon = Icons.Filled.Info) {
-                KeyValueRow(stringResource(R.string.settings_version), BuildConfig.VERSION_NAME)
+                KeyValueRow(stringResource(R.string.settings_version), versionLabel())
             }
         }
     }
@@ -118,6 +118,10 @@ private fun PlaceholderHelpCard() {
         }
     }
 }
+
+/** Version plus the build environment from env/env.properties, e.g. "2.0.0 · prod". */
+private fun versionLabel(): String =
+    listOf(BuildConfig.VERSION_NAME, BuildConfig.ENV).filter { it.isNotBlank() }.joinToString(" · ")
 
 @StringRes
 private fun placeholderDescription(name: String): Int = when (name) {

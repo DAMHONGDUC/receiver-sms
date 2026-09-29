@@ -34,25 +34,32 @@
 
 ## Build config (`env/`)
 
-All build config and secrets live in `env/`; only [env.sample.properties](../env/env.sample.properties) is committed.
+All build config lives in `env/`, split by sensitivity; only the `*.sample.properties` templates are committed.
+
+| File | Holds | Template |
+|---|---|---|
+| `env/env.properties` | Environment values, not secret | [env.sample.properties](../env/env.sample.properties) |
+| `env/key.properties` | Release signing secrets | [key.sample.properties](../env/key.sample.properties) |
+| `env/*.jks` | Release keystore | - |
 
 | Step | Action |
 |---|---|
-| 1 | Copy `env/env.sample.properties` to `env/env.properties` |
-| 2 | Put the release keystore in `env/` (e.g. `env/release.jks`) |
-| 3 | Fill the keys below in `env/env.properties` |
+| 1 | `cp env/env.sample.properties env/env.properties` and fill it |
+| 2 | Create the keystore: `keytool -genkeypair -v -storetype PKCS12 -keystore env/release.jks -alias sms-hook -keyalg RSA -keysize 4096 -validity 10000` |
+| 3 | `cp env/key.sample.properties env/key.properties` and fill it |
 | 4 | Run `./gradlew :app:exportReleaseApk` → signed APK in `Release/` |
 
-| Key | Required | Purpose |
-|---|---|---|
-| `RELEASE_STORE_FILE` | For signed release | Keystore file name, relative to `env/`; release build is unsigned without it |
-| `RELEASE_STORE_PASSWORD` | For signed release | Keystore password |
-| `RELEASE_KEY_ALIAS` | For signed release | Key alias |
-| `RELEASE_KEY_PASSWORD` | For signed release | Key password |
+| Key | File | Required | Purpose |
+|---|---|---|---|
+| `ENV` | `env.properties` | No | Build label (e.g. `dev`, `prod`), shown next to the version in Settings → About |
+| `RELEASE_STORE_FILE` | `key.properties` | For signed release | Keystore file name, relative to `env/`; release build is unsigned without it |
+| `RELEASE_STORE_PASSWORD` | `key.properties` | For signed release | Keystore password |
+| `RELEASE_KEY_ALIAS` | `key.properties` | For signed release | Key alias |
+| `RELEASE_KEY_PASSWORD` | `key.properties` | For signed release | Key password (same as the store password for PKCS12) |
 
 | Gitignored | Why |
 |---|---|
-| `env/*` except the sample | Real values and keystores never reach git |
+| `env/*` except `*.sample.properties` | Real values and keystores never reach git |
 | `Release/` | Exported APKs are build output |
 | `local.properties` | Only `sdk.dir`, written by Android Studio |
 

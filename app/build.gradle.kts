@@ -10,13 +10,19 @@ plugins {
     alias(libs.plugins.room)
 }
 
-// All build config comes from env/env.properties (gitignored); env/env.sample.properties lists the keys.
+// All build config comes from env/ (gitignored); each file has a key-only *.sample.properties next to it.
+// - env.properties: environment values, not secret
+// - key.properties: release signing, secret
 val envDir: File = rootProject.file("env")
-val env: Properties = Properties().apply {
-    val file: File = File(envDir, "env.properties")
+
+fun loadEnvFile(name: String): Properties = Properties().apply {
+    val file: File = File(envDir, name)
     if (file.exists()) file.inputStream().use { load(it) }
 }
-val releaseStoreFile: File? = env.getProperty("RELEASE_STORE_FILE")
+
+val env: Properties = loadEnvFile("env.properties")
+val keys: Properties = loadEnvFile("key.properties")
+val releaseStoreFile: File? = keys.getProperty("RELEASE_STORE_FILE")
     ?.takeIf { it.isNotBlank() }
     ?.let { File(envDir, it) }
     ?.takeIf { it.exists() }
@@ -25,7 +31,7 @@ val appVersionName: String = "2.0.0"
 val appVersionCode: Int = 2
 
 if (releaseStoreFile == null) {
-    logger.warn("env/env.properties has no usable RELEASE_STORE_FILE: release builds will be unsigned.")
+    logger.warn("env/key.properties has no usable RELEASE_STORE_FILE: release builds will be unsigned.")
 }
 
 android {
@@ -42,15 +48,16 @@ android {
         versionName = appVersionName
 
         testInstrumentationRunner = "com.receiver.sms.HiltTestRunner"
+        buildConfigField("String", "ENV", "\"${env.getProperty("ENV").orEmpty()}\"")
     }
 
     signingConfigs {
         if (releaseStoreFile != null) {
             create("release") {
                 storeFile = releaseStoreFile
-                storePassword = env.getProperty("RELEASE_STORE_PASSWORD")
-                keyAlias = env.getProperty("RELEASE_KEY_ALIAS")
-                keyPassword = env.getProperty("RELEASE_KEY_PASSWORD")
+                storePassword = keys.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = keys.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = keys.getProperty("RELEASE_KEY_PASSWORD")
             }
         }
     }
