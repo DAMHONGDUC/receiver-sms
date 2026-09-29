@@ -67,7 +67,7 @@ All build config lives in `env/`, split by sensitivity; only `env/version.proper
 | 3 | Release keystore: `keytool -genkeypair -v -storetype PKCS12 -keystore env/release.jks -alias sms-hook -keyalg RSA -keysize 4096 -validity 10000` |
 | 4 | Create `env/key.properties` with the `DEBUG_*` and `RELEASE_*` keys below |
 | 5 | Bump `versionCode` (and `versionName`) in `env/version.properties` |
-| 6 | Run `make apk` or `make aab` → signed `sms-hook-<flavor>-<versionName>-<versionCode>.<apk\|aab>` in `Release/` |
+| 6 | Run `make apk` or `make aab` → signed `<flavor>-sms-hook-<versionName>-<versionCode>.<apk\|aab>` in `Release/`, replacing the previous file of the same flavor and format |
 
 | Key | File | Required | Purpose |
 |---|---|---|---|
