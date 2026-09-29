@@ -9,11 +9,11 @@
 
 | Task | Command |
 |---|---|
-| Build | `./gradlew :app:assembleDebug` |
-| Install | `./gradlew :app:installDebug` |
-| Test single class | `./gradlew :app:testDebugUnitTest --tests '*<ClassName>*'` |
-| Instrumented single class | `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=<fqcn>` |
-| Lint | `./gradlew :app:lintDebug` |
+| Build | `./gradlew :app:assembleDevDebug` |
+| Install | `./gradlew :app:installDevDebug` |
+| Test single class | `./gradlew :app:testDevDebugUnitTest --tests '*<ClassName>*'` |
+| Instrumented single class | `./gradlew :app:connectedDevDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=<fqcn>` |
+| Lint | `./gradlew :app:lintDevDebug` |
 | Fake SMS on emulator | `adb emu sms send <sender> "<body>"` |
 
 ## Rules
