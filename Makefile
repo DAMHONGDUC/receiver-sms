@@ -6,7 +6,7 @@ SCRIPT_TOOLS := packages/script-tools
 # Variant for build/install/test/lint.
 VARIANT := DevDebug
 
-.PHONY: setup tools-update release
+.PHONY: setup tools-update release-dev release-prod
 # Release builds share Gradle outputs, so they must not run in parallel.
 .NOTPARALLEL:
 
@@ -25,4 +25,9 @@ setup: ## Fetch the script-tools submodule after cloning
 tools-update: ## Pull the latest script-tools; commit the new submodule pointer afterwards
 	git submodule update --init --remote $(SCRIPT_TOOLS)
 
-release: aab apk ## Signed release AAB and APK into Release/
+# Sub-make so each flavor runs aab and apk again, even when both targets are given at once.
+release-dev: ## Signed dev AAB and APK into Release/
+	$(MAKE) aab apk FLAVOR=dev
+
+release-prod: ## Signed prod AAB and APK into Release/
+	$(MAKE) aab apk FLAVOR=prod

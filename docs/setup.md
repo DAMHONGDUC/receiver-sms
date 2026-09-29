@@ -21,7 +21,8 @@
 | Build prod release APK (R8) | `./gradlew :app:assembleProdRelease` |
 | Signed release APK into `Release/` (clean, unit tests, build, verify) | `make apk` (`FLAVOR=dev` for dev) |
 | Signed release AAB into `Release/` (clean, unit tests, build, verify) | `make aab` (`FLAVOR=dev` for dev) |
-| Signed release AAB and APK into `Release/` | `make release` (`FLAVOR=dev` for dev) |
+| Signed dev AAB and APK into `Release/` | `make release-dev` |
+| Signed prod AAB and APK into `Release/` | `make release-prod` |
 | Unit tests | `make test` |
 | One test class | `make test TEST=SmsMatcherTest` |
 | Instrumented tests (emulator running) | `./gradlew :app:connectedDevDebugAndroidTest` |
