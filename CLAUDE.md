@@ -12,6 +12,7 @@
 | Build | `./gradlew :app:assembleDebug` |
 | Install | `./gradlew :app:installDebug` |
 | Test single class | `./gradlew :app:testDebugUnitTest --tests '*<ClassName>*'` |
+| Instrumented single class | `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=<fqcn>` |
 | Lint | `./gradlew :app:lintDebug` |
 | Fake SMS on emulator | `adb emu sms send <sender> "<body>"` |
 
