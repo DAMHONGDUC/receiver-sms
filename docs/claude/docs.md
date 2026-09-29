@@ -3,7 +3,7 @@
 | Rule | Reason |
 |---|---|
 | Only `README.md` and `CLAUDE.md` at repo root; every other `.md` under `docs/` | Predictable location |
-| `README.md` sections only: overview table, store links, app IDs, tech stack, architecture diagram, local DB diagram | README stays a summary |
+| `README.md` sections only: overview table, store links, app IDs (applicationId + namespace, release only), tech stack (framework, language, state management, backend, local DB, notable libraries), architecture (pattern, encryption, layer diagram with one `subgraph` per layer), local DB diagram | README stays a summary |
 | `CLAUDE.md` is an index; rules live in `docs/claude/<topic>.md` | Short always-loaded context |
 | Topic with 2+ files becomes a subfolder (`docs/modules/`, `docs/guides/`) | Grouping |
 | Tables and Mermaid diagrams first; at most one short sentence under a heading | Scannable |
