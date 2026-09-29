@@ -15,7 +15,8 @@
 | Build debug APK | `./gradlew :app:assembleDevDebug` |
 | Install on device | `./gradlew :app:installDevDebug` |
 | Build prod release APK (R8) | `./gradlew :app:assembleProdRelease` |
-| Build release APK into `Release/` | `./gradlew :app:exportReleaseApk` |
+| Build signed release APK into `Release/` | `./tools/build_release_apk.sh` (`FLAVOR=dev` for dev) |
+| Build signed release AAB into `Release/` | `./tools/build_release_aab.sh` (`FLAVOR=dev` for dev) |
 | Unit tests | `./gradlew :app:testDevDebugUnitTest` |
 | One test class | `./gradlew :app:testDevDebugUnitTest --tests '*SmsMatcherTest*'` |
 | Instrumented tests (emulator running) | `./gradlew :app:connectedDevDebugAndroidTest` |
@@ -41,10 +42,11 @@
 
 ## Build config (`env/`)
 
-All build config lives in `env/`, split by sensitivity; nothing in `env/` is committed, the tables below are the key reference.
+All build config lives in `env/`, split by sensitivity; only `env/version.properties` is committed, the tables below are the key reference.
 
 | File | Holds |
 |---|---|
+| `env/version.properties` | App version for every build, committed |
 | `env/env.dev.properties` | Dev flavor values, not secret |
 | `env/env.prod.properties` | Prod flavor values, not secret |
 | `env/key.properties` | Debug and release signing keys, shared by both flavors |
@@ -57,10 +59,13 @@ All build config lives in `env/`, split by sensitivity; nothing in `env/` is com
 | 2 | Debug keystore: `cp ~/.android/debug.keystore env/debug.keystore` |
 | 3 | Release keystore: `keytool -genkeypair -v -storetype PKCS12 -keystore env/release.jks -alias sms-hook -keyalg RSA -keysize 4096 -validity 10000` |
 | 4 | Create `env/key.properties` with the `DEBUG_*` and `RELEASE_*` keys below |
-| 5 | Run `./gradlew :app:exportReleaseApk` → signed APK in `Release/` |
+| 5 | Bump `versionCode` (and `versionName`) in `env/version.properties` |
+| 6 | Run `./tools/build_release_apk.sh` or `./tools/build_release_aab.sh` → signed `sms-hook-<versionName>-<versionCode>.<apk\|aab>` in `Release/` |
 
 | Key | File | Required | Purpose |
 |---|---|---|---|
+| `versionName` | `version.properties` | Yes | Version label users see |
+| `versionCode` | `version.properties` | Yes | Integer; must increase on every Play upload |
 | `ENV` | `env.dev.properties` / `env.prod.properties` | No | Environment label (defaults to the flavor name); shown next to the version in Settings → About, and as the tag on every screen in dev |
 | `DEBUG_STORE_FILE` | `key.properties` | No | Debug keystore relative to `env/`; without it debug builds use `~/.android/debug.keystore` |
 | `DEBUG_STORE_PASSWORD` | `key.properties` | With `DEBUG_STORE_FILE` | `android` for the standard debug key |
@@ -73,8 +78,8 @@ All build config lives in `env/`, split by sensitivity; nothing in `env/` is com
 
 | Gitignored | Why |
 |---|---|
-| `env/` | Real values and keystores never reach git |
-| `Release/` | Exported APKs are build output |
+| `env/*` except `version.properties` | Real values and keystores never reach git |
+| `Release/` | Exported APKs and AABs are build output |
 | `local.properties` | Only `sdk.dir`, written by Android Studio |
 
 ## First run on a device

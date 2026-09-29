@@ -10,9 +10,10 @@ plugins {
     alias(libs.plugins.room)
 }
 
-// All build config comes from env/ (gitignored); the keys are listed in docs/setup.md.
-// - env.dev.properties / env.prod.properties: environment values per flavor, not secret
-// - key.properties: debug and release signing, secret
+// All build config comes from env/; the keys are listed in docs/setup.md.
+// - version.properties: app version, committed
+// - env.dev.properties / env.prod.properties: environment values per flavor, not secret, gitignored
+// - key.properties: debug and release signing, secret, gitignored
 val envDir: File = rootProject.file("env")
 
 /** Values are trimmed: a stray trailing space or tab in a hand-edited file would otherwise break signing. */
@@ -36,8 +37,11 @@ fun keystore(prefix: String): File? {
 val debugStoreFile: File? = keystore("DEBUG")
 val releaseStoreFile: File? = keystore("RELEASE")
 
-val appVersionName: String = "2.0.0"
-val appVersionCode: Int = 2
+val versionProps: Map<String, String> = loadEnvFile("version.properties")
+val appVersionName: String = versionProps["versionName"]?.takeIf { it.isNotBlank() }
+    ?: error("env/version.properties has no versionName")
+val appVersionCode: Int = versionProps["versionCode"]?.toIntOrNull()
+    ?: error("env/version.properties has no numeric versionCode")
 
 if (debugStoreFile == null) {
     logger.warn("env/key.properties has no usable DEBUG_STORE_FILE: debug builds use the default ~/.android key.")
@@ -156,15 +160,33 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-// Builds the prod release APK and copies it to Release/ at the repo root: ./gradlew :app:exportReleaseApk
-val releaseApkName: String = "sms-hook-$appVersionName.apk"
-tasks.register<Copy>("exportReleaseApk") {
-    dependsOn("assembleProdRelease")
-    from(layout.buildDirectory.dir("outputs/apk/prod/release")) { include("*.apk") }
-    into(rootProject.layout.projectDirectory.dir("Release"))
-    // String overload, not a lambda: a lambda captures the build script and breaks the configuration cache.
-    rename(".*\\.apk", releaseApkName)
+// Signed release builds copied to Release/ at the repo root, e.g. ./gradlew :app:exportProdReleaseAab.
+// exportReleaseApk / exportReleaseAab are the prod shortcuts; tools/build_release_*.sh wrap them.
+data class ReleaseFormat(val name: String, val buildTask: String, val outputDir: String, val extension: String)
+
+val releaseFormats: List<ReleaseFormat> = listOf(
+    ReleaseFormat(name = "Apk", buildTask = "assemble", outputDir = "outputs/apk/%s/release", extension = "apk"),
+    ReleaseFormat(name = "Aab", buildTask = "bundle", outputDir = "outputs/bundle/%sRelease", extension = "aab"),
+)
+
+for (flavor in listOf("dev", "prod")) {
+    val flavorTitle: String = flavor.replaceFirstChar { it.uppercase() }
+    val flavorTag: String = if (flavor == "prod") "" else "-$flavor"
+
+    for (format in releaseFormats) {
+        val fileName: String = "sms-hook$flavorTag-$appVersionName-$appVersionCode.${format.extension}"
+
+        tasks.register<Copy>("export${flavorTitle}Release${format.name}") {
+            dependsOn("${format.buildTask}${flavorTitle}Release")
+            from(layout.buildDirectory.dir(format.outputDir.format(flavor))) { include("*.${format.extension}") }
+            into(rootProject.layout.projectDirectory.dir("Release"))
+            // String overload, not a lambda: a lambda captures the build script and breaks the configuration cache.
+            rename(".*\\.${format.extension}", fileName)
+        }
+    }
 }
+tasks.register("exportReleaseApk") { dependsOn("exportProdReleaseApk") }
+tasks.register("exportReleaseAab") { dependsOn("exportProdReleaseAab") }
 
 dependencies {
     // androidx core
