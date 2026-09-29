@@ -1,6 +1,11 @@
 package com.receiver.sms.core.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
@@ -17,11 +22,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.receiver.sms.BuildConfig
 import com.receiver.sms.R
+import com.receiver.sms.core.theme.Dimens
 
 /** Where a screen sits decides who owns the bottom inset: the bottom bar (top level) or this scaffold. */
 enum class ScreenLevel { TOP, DETAIL }
@@ -48,12 +56,16 @@ fun ScreenScaffold(
             // One compact bar for every screen: the title sits in it, tabs just use a larger style.
             TopAppBar(
                 title = {
-                    Text(
-                        text = title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = if (level == ScreenLevel.TOP) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
+                        Text(
+                            text = title,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = if (level == ScreenLevel.TOP) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        if (BuildConfig.IS_DEV) EnvironmentTag()
+                    }
                 },
                 navigationIcon = {
                     if (onNavigateUp != null) {
@@ -71,5 +83,18 @@ fun ScreenScaffold(
         floatingActionButton = floatingActionButton,
         bottomBar = bottomBar,
         content = content,
+    )
+}
+
+/** Marks dev builds on every screen so they are never mistaken for prod. */
+@Composable
+private fun EnvironmentTag() {
+    Text(
+        text = BuildConfig.ENV.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onTertiaryContainer,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(Dimens.chipRadius))
+            .padding(horizontal = Dimens.inlineGap, vertical = Dimens.smallGap),
     )
 }

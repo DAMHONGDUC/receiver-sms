@@ -11,22 +11,27 @@ plugins {
 }
 
 // All build config comes from env/ (gitignored); each file has a key-only *.sample.properties next to it.
-// - env.properties: environment values, not secret
-// - key.properties: release signing, secret
+// - env.dev.properties / env.prod.properties: environment values per flavor, not secret
+// - key.properties: debug and release signing, secret
 val envDir: File = rootProject.file("env")
 
-fun loadEnvFile(name: String): Properties = Properties().apply {
+/** Values are trimmed: a stray trailing space or tab in a hand-edited file would otherwise break signing. */
+fun loadEnvFile(name: String): Map<String, String> {
     val file: File = File(envDir, name)
-    if (file.exists()) file.inputStream().use { load(it) }
+    val properties: Properties = Properties()
+
+    if (file.exists()) file.inputStream().use { properties.load(it) }
+    return properties.stringPropertyNames().associateWith { properties.getProperty(it).trim() }
 }
 
-val env: Properties = loadEnvFile("env.properties")
-val keys: Properties = loadEnvFile("key.properties")
-/** The keystore named by `<prefix>_STORE_FILE` in key.properties, if it exists in env/. */
-fun keystore(prefix: String): File? = keys.getProperty("${prefix}_STORE_FILE")
-    ?.takeIf { it.isNotBlank() }
-    ?.let { File(envDir, it) }
-    ?.takeIf { it.exists() }
+val keys: Map<String, String> = loadEnvFile("key.properties")
+
+/** Keystore named by `<prefix>_STORE_FILE`: relative to env/, or to the repo root (e.g. env/release.jks). */
+fun keystore(prefix: String): File? {
+    val path: String = keys["${prefix}_STORE_FILE"]?.takeIf { it.isNotBlank() } ?: return null
+
+    return listOf(File(envDir, path), rootProject.file(path)).firstOrNull { it.exists() }
+}
 
 val debugStoreFile: File? = keystore("DEBUG")
 val releaseStoreFile: File? = keystore("RELEASE")
@@ -39,6 +44,16 @@ if (debugStoreFile == null) {
 }
 if (releaseStoreFile == null) {
     logger.warn("env/key.properties has no usable RELEASE_STORE_FILE: release builds will be unsigned.")
+}
+
+/** Per-flavor values: env file -> BuildConfig.ENV, dev flag for the in-app tag, launcher label. */
+fun com.android.build.api.dsl.ApplicationProductFlavor.configureEnvironment(flavor: String, appName: String, isDev: Boolean) {
+    val env: Map<String, String> = loadEnvFile("env.$flavor.properties")
+
+    if (env.isEmpty()) logger.warn("env/env.$flavor.properties is missing or empty: ENV falls back to \"$flavor\".")
+    buildConfigField("String", "ENV", "\"${env["ENV"]?.takeIf { it.isNotBlank() } ?: flavor}\"")
+    buildConfigField("boolean", "IS_DEV", isDev.toString())
+    resValue("string", "app_name", appName)
 }
 
 android {
@@ -55,24 +70,38 @@ android {
         versionName = appVersionName
 
         testInstrumentationRunner = "com.receiver.sms.HiltTestRunner"
-        buildConfigField("String", "ENV", "\"${env.getProperty("ENV").orEmpty()}\"")
+    }
+
+    // dev installs next to prod (own id, "Dev" label, DEV tag in the app); each reads its own env file.
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            configureEnvironment(flavor = "dev", appName = "SMS Hook Dev", isDev = true)
+        }
+        create("prod") {
+            dimension = "environment"
+            configureEnvironment(flavor = "prod", appName = "SMS Hook", isDev = false)
+        }
     }
 
     signingConfigs {
         if (debugStoreFile != null) {
             getByName("debug") {
                 storeFile = debugStoreFile
-                storePassword = keys.getProperty("DEBUG_STORE_PASSWORD")
-                keyAlias = keys.getProperty("DEBUG_KEY_ALIAS")
-                keyPassword = keys.getProperty("DEBUG_KEY_PASSWORD")
+                storePassword = keys["DEBUG_STORE_PASSWORD"]
+                keyAlias = keys["DEBUG_KEY_ALIAS"]
+                keyPassword = keys["DEBUG_KEY_PASSWORD"]
             }
         }
         if (releaseStoreFile != null) {
             create("release") {
                 storeFile = releaseStoreFile
-                storePassword = keys.getProperty("RELEASE_STORE_PASSWORD")
-                keyAlias = keys.getProperty("RELEASE_KEY_ALIAS")
-                keyPassword = keys.getProperty("RELEASE_KEY_PASSWORD")
+                storePassword = keys["RELEASE_STORE_PASSWORD"]
+                keyAlias = keys["RELEASE_KEY_ALIAS"]
+                keyPassword = keys["RELEASE_KEY_PASSWORD"]
             }
         }
     }
@@ -104,6 +133,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = true
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
@@ -126,11 +156,11 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-// Builds the release APK and copies it to Release/ at the repo root: ./gradlew :app:exportReleaseApk
+// Builds the prod release APK and copies it to Release/ at the repo root: ./gradlew :app:exportReleaseApk
 val releaseApkName: String = "sms-hook-$appVersionName.apk"
 tasks.register<Copy>("exportReleaseApk") {
-    dependsOn("assembleRelease")
-    from(layout.buildDirectory.dir("outputs/apk/release")) { include("*.apk") }
+    dependsOn("assembleProdRelease")
+    from(layout.buildDirectory.dir("outputs/apk/prod/release")) { include("*.apk") }
     into(rootProject.layout.projectDirectory.dir("Release"))
     rename { releaseApkName }
 }

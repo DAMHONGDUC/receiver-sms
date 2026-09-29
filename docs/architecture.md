@@ -64,6 +64,7 @@ sequenceDiagram
 | OkHttp directly, no Retrofit | URL/method/headers are fully dynamic | Manual request building |
 | Teal/orange status colours | Pass colour-vision-deficiency check | Not the usual green/red |
 | Cleartext HTTP allowed | LAN webhooks | No transport security for `http://` URLs |
+| `dev` / `prod` flavors, each with its own env file and applicationId | Test a dev build on the same phone as the real one; dev is tagged on every screen | Two variants to build and test |
 | `MainActivity` extends `AppCompatActivity` | In-app language switching on Android 12 and below | AppCompat dependency and `Theme.AppCompat` window theme |
 | Theme mode stored in DataStore, applied in `MainActivity` | Light/dark independent of the device setting | Splash window follows the device theme, not the app one |
 
