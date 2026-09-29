@@ -8,8 +8,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -18,10 +16,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.receiver.sms.R
@@ -42,43 +39,33 @@ fun ScreenScaffold(
     bottomBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
-    val scrollBehavior: TopAppBarScrollBehavior = if (level == ScreenLevel.TOP) {
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    } else {
-        TopAppBarDefaults.pinnedScrollBehavior()
-    }
-    val navigationIcon: @Composable () -> Unit = {
-        if (onNavigateUp != null) {
-            IconButton(onClick = onNavigateUp) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
-            }
-        }
-    }
-    val titleContent: @Composable () -> Unit = {
-        Text(text = title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = LocalTextStyle.current)
-    }
+    val surface: Color = MaterialTheme.colorScheme.surface
 
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier,
         contentWindowInsets = if (level == ScreenLevel.TOP) WindowInsets(0) else ScaffoldDefaults.contentWindowInsets,
         topBar = {
-            // Top-level tabs get a large title that collapses on scroll; detail screens keep a compact bar.
-            if (level == ScreenLevel.TOP) {
-                LargeTopAppBar(
-                    title = titleContent,
-                    navigationIcon = navigationIcon,
-                    actions = actions,
-                    scrollBehavior = scrollBehavior,
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-                )
-            } else {
-                TopAppBar(
-                    title = titleContent,
-                    navigationIcon = navigationIcon,
-                    actions = actions,
-                    scrollBehavior = scrollBehavior,
-                )
-            }
+            // One compact bar for every screen: the title sits in it, tabs just use a larger style.
+            TopAppBar(
+                title = {
+                    Text(
+                        text = title,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = if (level == ScreenLevel.TOP) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+                    )
+                },
+                navigationIcon = {
+                    if (onNavigateUp != null) {
+                        IconButton(onClick = onNavigateUp) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                        }
+                    }
+                },
+                actions = actions,
+                // Same colour scrolled or not: no tint overlay when content moves under the bar.
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = surface, scrolledContainerColor = surface),
+            )
         },
         snackbarHost = { if (snackbarHostState != null) SnackbarHost(snackbarHostState) },
         floatingActionButton = floatingActionButton,
