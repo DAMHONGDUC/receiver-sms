@@ -14,12 +14,14 @@
 
 | Task | Command |
 |---|---|
-| Fetch the script-tools submodule (after clone) | `git submodule update --init` |
+| Fetch the script-tools submodule (after clone) | `make setup` |
+| Pull the latest script-tools, then commit the new pointer | `make tools-update` |
 | Build debug APK | `make build` |
 | Install on device | `make install` |
 | Build prod release APK (R8) | `./gradlew :app:assembleProdRelease` |
 | Signed release APK into `Release/` (clean, unit tests, build, verify) | `make apk` (`FLAVOR=dev` for dev) |
 | Signed release AAB into `Release/` (clean, unit tests, build, verify) | `make aab` (`FLAVOR=dev` for dev) |
+| Signed release AAB and APK into `Release/` | `make release` (`FLAVOR=dev` for dev) |
 | Unit tests | `make test` |
 | One test class | `make test TEST=SmsMatcherTest` |
 | Instrumented tests (emulator running) | `./gradlew :app:connectedDevDebugAndroidTest` |

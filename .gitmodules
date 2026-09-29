@@ -1,3 +1,4 @@
 [submodule "script-tools"]
 	path = packages/script-tools
 	url = https://github.com/DAMHONGDUC/script-tools
+	branch = main
