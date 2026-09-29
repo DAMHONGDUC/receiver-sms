@@ -162,7 +162,8 @@ tasks.register<Copy>("exportReleaseApk") {
     dependsOn("assembleProdRelease")
     from(layout.buildDirectory.dir("outputs/apk/prod/release")) { include("*.apk") }
     into(rootProject.layout.projectDirectory.dir("Release"))
-    rename { releaseApkName }
+    // String overload, not a lambda: a lambda captures the build script and breaks the configuration cache.
+    rename(".*\\.apk", releaseApkName)
 }
 
 dependencies {
