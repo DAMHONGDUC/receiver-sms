@@ -39,19 +39,25 @@ All build config lives in `env/`, split by sensitivity; only the `*.sample.prope
 | File | Holds | Template |
 |---|---|---|
 | `env/env.properties` | Environment values, not secret | [env.sample.properties](../env/env.sample.properties) |
-| `env/key.properties` | Release signing secrets | [key.sample.properties](../env/key.sample.properties) |
-| `env/*.jks` | Release keystore | - |
+| `env/key.properties` | Debug and release signing keys | [key.sample.properties](../env/key.sample.properties) |
+| `env/debug.keystore` | Debug keystore (copy of `~/.android/debug.keystore`) | - |
+| `env/release.jks` | Release keystore | - |
 
 | Step | Action |
 |---|---|
 | 1 | `cp env/env.sample.properties env/env.properties` and fill it |
-| 2 | Create the keystore: `keytool -genkeypair -v -storetype PKCS12 -keystore env/release.jks -alias sms-hook -keyalg RSA -keysize 4096 -validity 10000` |
-| 3 | `cp env/key.sample.properties env/key.properties` and fill it |
-| 4 | Run `./gradlew :app:exportReleaseApk` → signed APK in `Release/` |
+| 2 | Debug keystore: `cp ~/.android/debug.keystore env/debug.keystore` |
+| 3 | Release keystore: `keytool -genkeypair -v -storetype PKCS12 -keystore env/release.jks -alias sms-hook -keyalg RSA -keysize 4096 -validity 10000` |
+| 4 | `cp env/key.sample.properties env/key.properties` and fill it |
+| 5 | Run `./gradlew :app:exportReleaseApk` → signed APK in `Release/` |
 
 | Key | File | Required | Purpose |
 |---|---|---|---|
 | `ENV` | `env.properties` | No | Build label (e.g. `dev`, `prod`), shown next to the version in Settings → About |
+| `DEBUG_STORE_FILE` | `key.properties` | No | Debug keystore relative to `env/`; without it debug builds use `~/.android/debug.keystore` |
+| `DEBUG_STORE_PASSWORD` | `key.properties` | With `DEBUG_STORE_FILE` | `android` for the standard debug key |
+| `DEBUG_KEY_ALIAS` | `key.properties` | With `DEBUG_STORE_FILE` | `androiddebugkey` for the standard debug key |
+| `DEBUG_KEY_PASSWORD` | `key.properties` | With `DEBUG_STORE_FILE` | `android` for the standard debug key |
 | `RELEASE_STORE_FILE` | `key.properties` | For signed release | Keystore file name, relative to `env/`; release build is unsigned without it |
 | `RELEASE_STORE_PASSWORD` | `key.properties` | For signed release | Keystore password |
 | `RELEASE_KEY_ALIAS` | `key.properties` | For signed release | Key alias |

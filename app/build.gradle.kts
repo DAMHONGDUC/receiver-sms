@@ -22,14 +22,21 @@ fun loadEnvFile(name: String): Properties = Properties().apply {
 
 val env: Properties = loadEnvFile("env.properties")
 val keys: Properties = loadEnvFile("key.properties")
-val releaseStoreFile: File? = keys.getProperty("RELEASE_STORE_FILE")
+/** The keystore named by `<prefix>_STORE_FILE` in key.properties, if it exists in env/. */
+fun keystore(prefix: String): File? = keys.getProperty("${prefix}_STORE_FILE")
     ?.takeIf { it.isNotBlank() }
     ?.let { File(envDir, it) }
     ?.takeIf { it.exists() }
 
+val debugStoreFile: File? = keystore("DEBUG")
+val releaseStoreFile: File? = keystore("RELEASE")
+
 val appVersionName: String = "2.0.0"
 val appVersionCode: Int = 2
 
+if (debugStoreFile == null) {
+    logger.warn("env/key.properties has no usable DEBUG_STORE_FILE: debug builds use the default ~/.android key.")
+}
 if (releaseStoreFile == null) {
     logger.warn("env/key.properties has no usable RELEASE_STORE_FILE: release builds will be unsigned.")
 }
@@ -52,6 +59,14 @@ android {
     }
 
     signingConfigs {
+        if (debugStoreFile != null) {
+            getByName("debug") {
+                storeFile = debugStoreFile
+                storePassword = keys.getProperty("DEBUG_STORE_PASSWORD")
+                keyAlias = keys.getProperty("DEBUG_KEY_ALIAS")
+                keyPassword = keys.getProperty("DEBUG_KEY_PASSWORD")
+            }
+        }
         if (releaseStoreFile != null) {
             create("release") {
                 storeFile = releaseStoreFile
