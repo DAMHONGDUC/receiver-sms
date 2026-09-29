@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.room)
 }
 
-// All build config comes from env/ (gitignored); each file has a key-only *.sample.properties next to it.
+// All build config comes from env/ (gitignored); the keys are listed in docs/setup.md.
 // - env.dev.properties / env.prod.properties: environment values per flavor, not secret
 // - key.properties: debug and release signing, secret
 val envDir: File = rootProject.file("env")

@@ -13,8 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
-# Build config and keystores: only the key-only template is committed.
-/env/*
-!/env/*.sample.properties
+# Build config and keystores: nothing in env/ is committed; docs/setup.md lists the keys.
+/env/
 # Exported release APKs
 /Release/

@@ -41,22 +41,22 @@
 
 ## Build config (`env/`)
 
-All build config lives in `env/`, split by sensitivity; only the `*.sample.properties` templates are committed.
+All build config lives in `env/`, split by sensitivity; nothing in `env/` is committed, the tables below are the key reference.
 
-| File | Holds | Template |
-|---|---|---|
-| `env/env.dev.properties` | Dev flavor values, not secret | [env.dev.sample.properties](../env/env.dev.sample.properties) |
-| `env/env.prod.properties` | Prod flavor values, not secret | [env.prod.sample.properties](../env/env.prod.sample.properties) |
-| `env/key.properties` | Debug and release signing keys, shared by both flavors | [key.sample.properties](../env/key.sample.properties) |
-| `env/debug.keystore` | Debug keystore (copy of `~/.android/debug.keystore`) | - |
-| `env/release.jks` | Release keystore | - |
+| File | Holds |
+|---|---|
+| `env/env.dev.properties` | Dev flavor values, not secret |
+| `env/env.prod.properties` | Prod flavor values, not secret |
+| `env/key.properties` | Debug and release signing keys, shared by both flavors |
+| `env/debug.keystore` | Debug keystore (copy of `~/.android/debug.keystore`) |
+| `env/release.jks` | Release keystore |
 
 | Step | Action |
 |---|---|
-| 1 | `cp env/env.dev.sample.properties env/env.dev.properties` and `cp env/env.prod.sample.properties env/env.prod.properties`, then fill them |
+| 1 | Create `env/env.dev.properties` and `env/env.prod.properties` with the `ENV` key |
 | 2 | Debug keystore: `cp ~/.android/debug.keystore env/debug.keystore` |
 | 3 | Release keystore: `keytool -genkeypair -v -storetype PKCS12 -keystore env/release.jks -alias sms-hook -keyalg RSA -keysize 4096 -validity 10000` |
-| 4 | `cp env/key.sample.properties env/key.properties` and fill it |
+| 4 | Create `env/key.properties` with the `DEBUG_*` and `RELEASE_*` keys below |
 | 5 | Run `./gradlew :app:exportReleaseApk` → signed APK in `Release/` |
 
 | Key | File | Required | Purpose |
@@ -73,7 +73,7 @@ All build config lives in `env/`, split by sensitivity; only the `*.sample.prope
 
 | Gitignored | Why |
 |---|---|
-| `env/*` except `*.sample.properties` | Real values and keystores never reach git |
+| `env/` | Real values and keystores never reach git |
 | `Release/` | Exported APKs are build output |
 | `local.properties` | Only `sdk.dir`, written by Android Studio |
 
