@@ -9,12 +9,14 @@
 
 | Task | Command |
 |---|---|
-| Build | `./gradlew :app:assembleDevDebug` |
-| Install | `./gradlew :app:installDevDebug` |
-| Test single class | `./gradlew :app:testDevDebugUnitTest --tests '*<ClassName>*'` |
+| List make targets | `make` (from `packages/script-tools`; `git submodule update --init` after clone) |
+| Build | `make build` |
+| Install | `make install` |
+| Test single class | `make test TEST=<ClassName>` |
 | Instrumented single class | `./gradlew :app:connectedDevDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=<fqcn>` |
-| Lint | `./gradlew :app:lintDevDebug` |
-| Fake SMS on emulator | `adb emu sms send <sender> "<body>"` |
+| Lint | `make lint` |
+| Signed release APK / AAB into `Release/` | `make apk` / `make aab` (`FLAVOR=dev` for dev) |
+| Fake SMS on emulator | `make sms SENDER=<sender> BODY="<body>"` |
 
 ## Rules
 
