@@ -14,46 +14,62 @@
 
 ## App IDs
 
-| Platform | Build type | ID type | Value |
-|---|---|---|---|
-| Android | release | applicationId | `com.receiver.sms` |
-| Android | debug | applicationId | `com.receiver.sms.debug` |
-| Android | - | namespace | `com.receiver.sms` |
+| ID | Value |
+|---|---|
+| Android applicationId | `com.receiver.sms` |
+| Android namespace | `com.receiver.sms` |
 
 ## Tech stack
 
 | Category | Technology | Version |
 |---|---|---|
-| Build | Gradle / Android Gradle Plugin (built-in Kotlin) | 9.8.0 / 9.4.1 |
-| Language | Kotlin / KSP | 2.4.20 / 2.3.12 |
-| SDK | compileSdk / targetSdk / minSdk | 37 / 37 / 26 |
-| UI | Jetpack Compose BOM, Material 3 | 2026.09.00 |
-| Navigation | Navigation Compose (type-safe routes) | 2.10.2 |
-| Architecture | MVVM + clean architecture, AndroidX Lifecycle | 2.11.0 |
-| DI | Hilt / androidx.hilt | 2.60.1 / 1.4.0 |
+| Framework | Native Android, Jetpack Compose (BOM) + Material 3 | 2026.09.00 |
+| Language | Kotlin | 2.4.20 |
+| State management | ViewModel + StateFlow (AndroidX Lifecycle) | 2.11.0 |
+| Backend | None (calls user-configured webhooks) | - |
 | Local DB | Room | 2.8.5 |
-| Settings | DataStore Preferences | 1.2.1 |
-| Background work | WorkManager | 2.12.0 |
-| Networking | OkHttp | 5.5.0 |
-| Serialization | kotlinx.serialization | 1.11.0 |
-| Tests | JUnit 4 / MockK / Turbine / MockWebServer | 4.13.2 / 1.14.11 / 1.2.1 / 5.5.0 |
+| Notable libraries | WorkManager (durable, retrying API calls) | 2.12.0 |
 
 ## Project architecture
 
+| | |
+|---|---|
+| Pattern | Clean Architecture + MVVM, feature-first |
+| Encryption | No |
+
 ```mermaid
 flowchart TD
-  SMS[Incoming SMS] --> Receiver[dispatch/platform<br/>SmsReceiver]
-  UI[Compose screens<br/>features/*/presentation] --> VM[ViewModels]
-  VM --> UC[Use cases<br/>features/*/domain]
-  Receiver --> UC
-  UC --> Repo[Repository interfaces<br/>features/*/domain]
-  UC --> Sched[CallScheduler]
-  Sched --> Worker[dispatch/data/work<br/>ApiCallWorker]
-  Worker --> UC
-  Repo --> Room[(Room<br/>core/db)]
-  Repo --> Store[(DataStore)]
-  UC --> Http[dispatch/data/remote<br/>OkHttpExecutor]
-  Http --> API[User APIs]
+  subgraph Presentation
+    SmsReceiver
+    ApiEditorViewModel
+  end
+  subgraph Domain
+    HandleIncomingSmsUseCase
+    SaveApiConfigUseCase
+    ExecuteQueuedCallUseCase
+    ApiConfigRepository
+    CallScheduler
+    HttpExecutor
+  end
+  subgraph Data
+    ApiConfigRepositoryImpl
+    WorkManagerCallScheduler
+    ApiCallWorker
+    OkHttpExecutor
+    AppDatabase[(AppDatabase)]
+  end
+  SmsReceiver --> HandleIncomingSmsUseCase
+  ApiEditorViewModel --> SaveApiConfigUseCase
+  HandleIncomingSmsUseCase --> ApiConfigRepository
+  HandleIncomingSmsUseCase --> CallScheduler
+  SaveApiConfigUseCase --> ApiConfigRepository
+  ExecuteQueuedCallUseCase --> HttpExecutor
+  ApiConfigRepository -.implemented by.-> ApiConfigRepositoryImpl
+  CallScheduler -.implemented by.-> WorkManagerCallScheduler
+  HttpExecutor -.implemented by.-> OkHttpExecutor
+  WorkManagerCallScheduler --> ApiCallWorker
+  ApiCallWorker --> ExecuteQueuedCallUseCase
+  ApiConfigRepositoryImpl --> AppDatabase
 ```
 
 ## Local database
