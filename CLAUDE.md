@@ -15,7 +15,8 @@
 | Test single class | `make test TEST=<ClassName>` |
 | Instrumented single class | `./gradlew :app:connectedDevDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=<fqcn>` |
 | Lint | `make lint` |
-| Signed release APK / AAB / both into `Release/` | `make apk` / `make aab` / `make release` (`FLAVOR=dev` for dev) |
+| Signed release APK / AAB into `Release/` | `make apk` / `make aab` (`FLAVOR=dev` for dev) |
+| Signed AAB + APK per flavor into `Release/` | `make release-dev` / `make release-prod` |
 | Fake SMS on emulator | `make sms SENDER=<sender> BODY="<body>"` |
 
 ## Rules
