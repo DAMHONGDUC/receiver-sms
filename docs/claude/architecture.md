@@ -22,5 +22,5 @@ Full picture: [docs/architecture.md](../architecture.md).
 |---|---|
 | Call the network from `SmsReceiver` or a ViewModel for real SMS | Enqueue via `CallScheduler` |
 | Add a Room foreign key from `call_logs` | History must outlive deleted configs |
-| Put build secrets in `local.properties` or Gradle files, or read/print `env/env.properties` | Add the key to `env/env.sample.properties` (no value) and read it only through the `env` loader in `app/build.gradle.kts` |
+| Put build config in `local.properties` or Gradle files, mix secrets into `env/env.properties`, or read/print `env/*.properties` | Non-secret values → `env/env.properties`, signing secrets → `env/key.properties`; add the key (no value) to the matching `*.sample.properties` and read it only through `loadEnvFile` in `app/build.gradle.kts` |
 | Put config constants on models/entities | `core/constants/AppConstants.kt` or the feature's own constants object; only a canonical empty value or id sentinel may live in a model's `companion object` (`SmsFilter.ANY`, `ApiConfig.NEW_ID`) |
