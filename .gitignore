@@ -16,3 +16,5 @@ local.properties
 # Build config and keystores stay local, except the committed app version; docs/setup.md lists the keys.
 /env/*
 !/env/version.properties
+# Exported release AABs (APKs are tracked)
+/Release/*.aab
