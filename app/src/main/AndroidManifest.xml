@@ -28,7 +28,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.Receiver_sms"
+        android:theme="@style/Theme.SmsHook"
         tools:targetApi="36">
 
         <activity
@@ -66,7 +66,7 @@
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Keeps the SMS to API forwarder alive so incoming SMS trigger the user's configured webhooks without delay." />
+                android:value="Keeps the SMS Hook forwarder alive so incoming SMS trigger the user's configured webhooks without delay." />
         </service>
 
         <!-- Persists the in-app language choice on Android 12 and below. -->

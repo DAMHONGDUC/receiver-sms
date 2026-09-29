@@ -72,12 +72,12 @@ sequenceDiagram
 
 | Task | Location |
 |---|---|
-| New screen | `features/<f>/presentation/<screen>/` + route in [Routes.kt](../app/src/main/java/com/receiver/sms/core/navigation/Routes.kt) + `composable<>` in [AppRoot.kt](../app/src/main/java/com/receiver/sms/core/navigation/AppRoot.kt) |
+| New screen | `features/<f>/presentation/<screen>/` + route in [Routes.kt](../app/src/main/java/com/dd/sms/hook/core/navigation/Routes.kt) + `composable<>` in [AppRoot.kt](../app/src/main/java/com/dd/sms/hook/core/navigation/AppRoot.kt) |
 | New use case | `features/<f>/domain/usecase/` (`@Inject constructor`, `operator fun invoke`) |
-| New DB table | Entity + DAO in `features/<f>/data/local/`, register in [AppDatabase.kt](../app/src/main/java/com/receiver/sms/core/db/AppDatabase.kt), bump `version`, add migration |
-| New setting | [AppSettings.kt](../app/src/main/java/com/receiver/sms/features/settings/domain/model/AppSettings.kt) + key in [SettingsRepositoryImpl.kt](../app/src/main/java/com/receiver/sms/features/settings/data/SettingsRepositoryImpl.kt) |
-| New placeholder | [TemplateRenderer.kt](../app/src/main/java/com/receiver/sms/features/dispatch/domain/service/TemplateRenderer.kt) `TemplateVariables` + [RequestFactory.kt](../app/src/main/java/com/receiver/sms/features/dispatch/domain/service/RequestFactory.kt) + description string |
-| New constant | [AppConstants.kt](../app/src/main/java/com/receiver/sms/core/constants/AppConstants.kt) (cross-feature) or the feature's own file |
-| New spacing / colour | [Dimens.kt](../app/src/main/java/com/receiver/sms/core/theme/Dimens.kt) / [Color.kt](../app/src/main/java/com/receiver/sms/core/theme/Color.kt) |
+| New DB table | Entity + DAO in `features/<f>/data/local/`, register in [AppDatabase.kt](../app/src/main/java/com/dd/sms/hook/core/db/AppDatabase.kt), bump `version`, add migration |
+| New setting | [AppSettings.kt](../app/src/main/java/com/dd/sms/hook/features/settings/domain/model/AppSettings.kt) + key in [SettingsRepositoryImpl.kt](../app/src/main/java/com/dd/sms/hook/features/settings/data/SettingsRepositoryImpl.kt) |
+| New placeholder | [TemplateRenderer.kt](../app/src/main/java/com/dd/sms/hook/features/dispatch/domain/service/TemplateRenderer.kt) `TemplateVariables` + [RequestFactory.kt](../app/src/main/java/com/dd/sms/hook/features/dispatch/domain/service/RequestFactory.kt) + description string |
+| New constant | [AppConstants.kt](../app/src/main/java/com/dd/sms/hook/core/constants/AppConstants.kt) (cross-feature) or the feature's own file |
+| New spacing / colour | [Dimens.kt](../app/src/main/java/com/dd/sms/hook/core/theme/Dimens.kt) / [Color.kt](../app/src/main/java/com/dd/sms/hook/core/theme/Color.kt) |
 | New string | Every `values*/strings.xml`: `values`, `values-vi`, `values-zh-rCN`, `values-es`, `values-hi`, `values-ar` |
-| New language | `values-<tag>/strings.xml` + entry in [AppLanguage.kt](../app/src/main/java/com/receiver/sms/core/locale/AppLanguage.kt) |
+| New language | `values-<tag>/strings.xml` + entry in [AppLanguage.kt](../app/src/main/java/com/dd/sms/hook/core/locale/AppLanguage.kt) |

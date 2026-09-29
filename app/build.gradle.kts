@@ -57,19 +57,19 @@ fun com.android.build.api.dsl.ApplicationProductFlavor.configureEnvironment(flav
 }
 
 android {
-    namespace = "com.receiver.sms"
+    namespace = "com.dd.sms.hook"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.receiver.sms"
+        applicationId = "com.dd.sms.hook"
         minSdk = 26
         targetSdk = 37
         versionCode = appVersionCode
         versionName = appVersionName
 
-        testInstrumentationRunner = "com.receiver.sms.HiltTestRunner"
+        testInstrumentationRunner = "com.dd.sms.hook.HiltTestRunner"
     }
 
     // dev installs next to prod (own id, "Dev" label, DEV tag in the app); each reads its own env file.

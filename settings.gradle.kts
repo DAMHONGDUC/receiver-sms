@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "receiver_sms"
+rootProject.name = "sms_hook"
 include(":app")

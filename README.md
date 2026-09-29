@@ -1,4 +1,4 @@
-# SMS to API
+# SMS Hook
 
 | | |
 |---|---|
@@ -16,8 +16,8 @@
 
 | ID | Value |
 |---|---|
-| Android applicationId | `com.receiver.sms` |
-| Android namespace | `com.receiver.sms` |
+| Android applicationId | `com.dd.sms.hook` |
+| Android namespace | `com.dd.sms.hook` |
 
 ## Tech stack
 

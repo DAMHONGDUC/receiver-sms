@@ -19,25 +19,25 @@
 | Unit tests | `./gradlew :app:testDevDebugUnitTest` |
 | One test class | `./gradlew :app:testDevDebugUnitTest --tests '*SmsMatcherTest*'` |
 | Instrumented tests (emulator running) | `./gradlew :app:connectedDevDebugAndroidTest` |
-| One instrumented class | `./gradlew :app:connectedDevDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.receiver.sms.e2e.AppFlowTest` |
+| One instrumented class | `./gradlew :app:connectedDevDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.dd.sms.hook.e2e.AppFlowTest` |
 | Lint | `./gradlew :app:lintDevDebug` |
 
 ## Test suites
 
 | Suite | Location | Covers |
 |---|---|---|
-| Unit (JVM) | [app/src/test](../app/src/test/java/com/receiver/sms) | Domain logic, use cases, mappers, settings DataStore, ViewModels |
+| Unit (JVM) | [app/src/test](../app/src/test/java/com/dd/sms/hook) | Domain logic, use cases, mappers, settings DataStore, ViewModels |
 | Unit (Robolectric) | Same folder, `@RunWith(RobolectricTestRunner::class)` | ViewModels that read navigation route args |
-| Room queries | [DaoTest.kt](../app/src/androidTest/java/com/receiver/sms/data/DaoTest.kt) | Every DAO query on real SQLite |
-| Worker | [ApiCallWorkerTest.kt](../app/src/androidTest/java/com/receiver/sms/work/ApiCallWorkerTest.kt) | Outcome → WorkManager result, input data, attempt number |
-| End to end | [AppFlowTest.kt](../app/src/androidTest/java/com/receiver/sms/e2e/AppFlowTest.kt) | Real app with Hilt: editor, test request, SMS → WorkManager → HTTP, retry timeline, filters, delete, settings |
+| Room queries | [DaoTest.kt](../app/src/androidTest/java/com/dd/sms/hook/data/DaoTest.kt) | Every DAO query on real SQLite |
+| Worker | [ApiCallWorkerTest.kt](../app/src/androidTest/java/com/dd/sms/hook/work/ApiCallWorkerTest.kt) | Outcome → WorkManager result, input data, attempt number |
+| End to end | [AppFlowTest.kt](../app/src/androidTest/java/com/dd/sms/hook/e2e/AppFlowTest.kt) | Real app with Hilt: editor, test request, SMS → WorkManager → HTTP, retry timeline, filters, delete, settings |
 
 ## Flavors
 
 | Flavor | applicationId | Launcher label | Env file | In-app tag |
 |---|---|---|---|---|
-| `dev` | `com.receiver.sms.dev` (+ `.debug` for debug) | SMS Hook Dev | `env/env.dev.properties` | `DEV` pill next to every screen title |
-| `prod` | `com.receiver.sms` (+ `.debug` for debug) | SMS Hook | `env/env.prod.properties` | None |
+| `dev` | `com.dd.sms.hook.dev` (+ `.debug` for debug) | SMS Hook Dev | `env/env.dev.properties` | `DEV` pill next to every screen title |
+| `prod` | `com.dd.sms.hook` (+ `.debug` for debug) | SMS Hook | `env/env.prod.properties` | None |
 
 ## Build config (`env/`)
 
@@ -93,4 +93,4 @@ All build config lives in `env/`, split by sensitivity; nothing in `env/` is com
 |---|---|
 | Webhook URL for a server on the host machine | `http://10.0.2.2:<port>/...` |
 | Send a fake SMS | `adb emu sms send 0901234567 "Your OTP is 123456"` |
-| Follow app logs | `adb logcat \| grep SmsFwd/` |
+| Follow app logs | `adb logcat \| grep SmsHook/` |
