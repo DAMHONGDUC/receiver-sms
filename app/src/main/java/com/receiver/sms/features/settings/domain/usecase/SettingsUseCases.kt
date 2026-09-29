@@ -3,6 +3,7 @@ package com.receiver.sms.features.settings.domain.usecase
 import com.receiver.sms.core.logging.AppLogger
 import com.receiver.sms.features.settings.domain.model.AppSettings
 import com.receiver.sms.features.settings.domain.model.RetentionPeriod
+import com.receiver.sms.features.settings.domain.model.ThemeMode
 import com.receiver.sms.features.settings.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -33,5 +34,15 @@ class UpdateSettingsUseCase @Inject constructor(private val repository: Settings
     suspend fun retention(retention: RetentionPeriod) {
         repository.setRetention(retention)
         AppLogger.i(TAG, "retention changed - {retention: $retention}")
+    }
+
+    suspend fun themeMode(mode: ThemeMode) {
+        repository.setThemeMode(mode)
+        AppLogger.i(TAG, "theme mode changed - {mode: $mode}")
+    }
+
+    suspend fun dynamicColor(enabled: Boolean) {
+        repository.setDynamicColor(enabled)
+        AppLogger.i(TAG, "dynamic color changed - {enabled: $enabled}")
     }
 }

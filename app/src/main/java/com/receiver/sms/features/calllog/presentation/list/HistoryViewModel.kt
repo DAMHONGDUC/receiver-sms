@@ -7,6 +7,7 @@ import androidx.navigation.toRoute
 import com.receiver.sms.R
 import com.receiver.sms.core.logging.AppLogger
 import com.receiver.sms.core.navigation.HistoryRoute
+import com.receiver.sms.core.time.TimeUtils
 import com.receiver.sms.core.ui.UiMessage
 import com.receiver.sms.features.calllog.domain.model.CallLog
 import com.receiver.sms.features.calllog.domain.model.CallLogFilter
@@ -29,15 +30,21 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import javax.inject.Inject
 
 private const val TAG = "HistoryViewModel"
 private const val STOP_TIMEOUT_MILLIS = 5_000L
 private const val SEARCH_DEBOUNCE_MILLIS = 250L
 
+/** Calls of one local day, newest first. */
+data class HistoryDay(val day: LocalDate, val logs: List<CallLog>)
+
 sealed interface HistoryState {
     data object Loading : HistoryState
-    data class Loaded(val logs: List<CallLog>) : HistoryState
+    data class Loaded(val days: List<HistoryDay>) : HistoryState {
+        val isEmpty: Boolean get() = days.isEmpty()
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -59,7 +66,7 @@ class HistoryViewModel @Inject constructor(
     val state: StateFlow<HistoryState> = mutableFilter
         .debounce(SEARCH_DEBOUNCE_MILLIS)
         .flatMapLatest { observeCallLogs(it) }
-        .map<List<CallLog>, HistoryState> { HistoryState.Loaded(it) }
+        .map<List<CallLog>, HistoryState> { logs -> HistoryState.Loaded(groupByDay(logs)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), HistoryState.Loading)
 
     fun onStatusFilter(status: CallStatus?) {
@@ -83,4 +90,8 @@ class HistoryViewModel @Inject constructor(
             }
         }
     }
+
+    /** Logs arrive newest first, so grouping keeps both day and row order. */
+    private fun groupByDay(logs: List<CallLog>): List<HistoryDay> =
+        logs.groupBy { TimeUtils.toLocalDate(it.createdAt) }.map { (day, items) -> HistoryDay(day, items) }
 }

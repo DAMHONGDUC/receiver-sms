@@ -17,11 +17,11 @@ private val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
 @Composable
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme: ColorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor && ThemeSupport.dynamicColorAvailable -> {
             if (darkTheme) dynamicDarkColorScheme(LocalContext.current) else dynamicLightColorScheme(LocalContext.current)
         }
         darkTheme -> DarkColors
@@ -29,8 +29,13 @@ fun AppTheme(
     }
 
     CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
-        MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
+        MaterialTheme(colorScheme = colorScheme, typography = AppTypography, shapes = AppShapes, content = content)
     }
+}
+
+object ThemeSupport {
+    /** Material You wallpaper colours exist from Android 12. */
+    val dynamicColorAvailable: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 }
 
 object AppThemeExtras {

@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PriorityHigh
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Sms
@@ -15,19 +17,29 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import com.receiver.sms.R
+import com.receiver.sms.core.theme.AppThemeExtras
 import com.receiver.sms.core.theme.Dimens
 import com.receiver.sms.core.time.TimeUtils
+import com.receiver.sms.core.ui.IconBadge
 import com.receiver.sms.core.ui.PillTone
 import com.receiver.sms.core.ui.StatusPill
 import com.receiver.sms.core.ui.UiFormat
+import com.receiver.sms.core.ui.currentLocale
 import com.receiver.sms.features.calllog.domain.model.CallLog
 import com.receiver.sms.features.calllog.domain.model.CallStatus
 import com.receiver.sms.features.calllog.domain.model.CallTrigger
+import java.util.Locale
+
+private const val BADGE_ALPHA = 0.16f
+
+/** What the row's timestamp shows: the full date in mixed lists, only the time under a day header. */
+enum class RowTimestamp { DATE_TIME, TIME }
 
 /** Public row for a call; also used by the dashboard's recent list. */
 @Composable
@@ -36,22 +48,36 @@ fun CallLogRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     horizontalPadding: Dp = Dimens.screenGutter,
+    timestamp: RowTimestamp = RowTimestamp.DATE_TIME,
 ) {
+    val success: Boolean = log.status == CallStatus.SUCCESS
+    val statusColor: Color = if (success) AppThemeExtras.statusColors.success else AppThemeExtras.statusColors.failure
+    val locale: Locale = currentLocale()
+    val time: String = when (timestamp) {
+        RowTimestamp.DATE_TIME -> TimeUtils.formatDateTime(log.createdAt, locale)
+        RowTimestamp.TIME -> TimeUtils.formatTime(log.createdAt, locale)
+    }
+    val meta: String = listOfNotNull(
+        time,
+        UiFormat.duration(log.durationMs),
+        if (log.attempt > 1) stringResource(R.string.history_attempt, log.attempt) else null,
+    ).joinToString(" · ")
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(horizontal = horizontalPadding, vertical = Dimens.inlineGap),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap),
+        horizontalArrangement = Arrangement.spacedBy(Dimens.cardPadding),
     ) {
+        IconBadge(
+            icon = if (success) Icons.Filled.Check else Icons.Filled.PriorityHigh,
+            containerColor = statusColor.copy(alpha = BADGE_ALPHA),
+            contentColor = statusColor,
+        )
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Dimens.smallGap)) {
-            Text(
-                text = log.configName,
-                style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Text(text = log.configName, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
                 text = stringResource(R.string.history_row_sms, log.smsSender, log.smsBody),
                 style = MaterialTheme.typography.bodySmall,
@@ -59,15 +85,10 @@ fun CallLogRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
-                text = "${TimeUtils.formatDateTime(log.createdAt)} · ${UiFormat.duration(log.durationMs)}" +
-                    if (log.attempt > 1) " · " + stringResource(R.string.history_attempt, log.attempt) else "",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Text(text = meta, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(Dimens.smallGap)) {
-            StatusPill(label = statusLabel(log), tone = if (log.status == CallStatus.SUCCESS) PillTone.SUCCESS else PillTone.FAILURE)
+            Text(text = statusLabel(log), style = MaterialTheme.typography.labelLarge)
             if (log.trigger != CallTrigger.SMS) TriggerPill(log.trigger)
         }
     }

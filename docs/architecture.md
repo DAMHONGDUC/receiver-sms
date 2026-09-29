@@ -64,6 +64,8 @@ sequenceDiagram
 | OkHttp directly, no Retrofit | URL/method/headers are fully dynamic | Manual request building |
 | Teal/orange status colours | Pass colour-vision-deficiency check | Not the usual green/red |
 | Cleartext HTTP allowed | LAN webhooks | No transport security for `http://` URLs |
+| `MainActivity` extends `AppCompatActivity` | In-app language switching on Android 12 and below | AppCompat dependency and `Theme.AppCompat` window theme |
+| Theme mode stored in DataStore, applied in `MainActivity` | Light/dark independent of the device setting | Splash window follows the device theme, not the app one |
 
 ## Where to add things
 
@@ -76,4 +78,5 @@ sequenceDiagram
 | New placeholder | [TemplateRenderer.kt](../app/src/main/java/com/receiver/sms/features/dispatch/domain/service/TemplateRenderer.kt) `TemplateVariables` + [RequestFactory.kt](../app/src/main/java/com/receiver/sms/features/dispatch/domain/service/RequestFactory.kt) + description string |
 | New constant | [AppConstants.kt](../app/src/main/java/com/receiver/sms/core/constants/AppConstants.kt) (cross-feature) or the feature's own file |
 | New spacing / colour | [Dimens.kt](../app/src/main/java/com/receiver/sms/core/theme/Dimens.kt) / [Color.kt](../app/src/main/java/com/receiver/sms/core/theme/Color.kt) |
-| New string | `values/strings.xml` and `values-vi/strings.xml` |
+| New string | Every `values*/strings.xml`: `values`, `values-vi`, `values-zh-rCN`, `values-es`, `values-hi`, `values-ar` |
+| New language | `values-<tag>/strings.xml` + entry in [AppLanguage.kt](../app/src/main/java/com/receiver/sms/core/locale/AppLanguage.kt) |

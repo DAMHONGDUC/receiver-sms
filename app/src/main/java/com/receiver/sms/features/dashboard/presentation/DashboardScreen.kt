@@ -8,11 +8,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Api
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.PauseCircle
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -22,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -32,7 +35,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.receiver.sms.R
 import com.receiver.sms.core.permission.PermissionStatus
 import com.receiver.sms.core.permission.rememberPermissionStatus
-import com.receiver.sms.core.theme.AppThemeExtras
 import com.receiver.sms.core.theme.Dimens
 import com.receiver.sms.core.ui.EmptyState
 import com.receiver.sms.core.ui.LoadingState
@@ -47,6 +49,9 @@ import com.receiver.sms.features.dashboard.domain.model.DashboardRange
 import com.receiver.sms.features.dashboard.presentation.components.ApiBreakdownRow
 import com.receiver.sms.features.dashboard.presentation.components.CallsBarChart
 import com.receiver.sms.features.dashboard.presentation.components.StatTile
+import com.receiver.sms.features.dashboard.presentation.components.StatusHeroCard
+
+private const val NO_VALUE = "—"
 
 @Composable
 fun DashboardScreen(
@@ -76,56 +81,15 @@ fun DashboardScreen(
                     .padding(Dimens.screenGutter),
                 verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
             ) {
+                StatusHeroCard(current.data, onOpenSettings, onCreateApi)
                 if (!permissions.allGranted) PermissionSetupCard(permissions)
-                ServiceStatusCard(current.data, onOpenSettings, onCreateApi)
                 RangeSelector(range, viewModel::onRangeChange)
                 StatGrid(current.data)
-                SectionCard(title = stringResource(R.string.dashboard_calls_per_day)) {
+                SectionCard(title = stringResource(R.string.dashboard_calls_per_day), icon = Icons.Filled.BarChart) {
                     CallsBarChart(days = current.data.daily)
                 }
                 TopApisCard(current.data)
                 RecentCallsCard(current.data, onOpenCall, onOpenHistory)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ServiceStatusCard(data: DashboardData, onOpenSettings: () -> Unit, onCreateApi: () -> Unit) {
-    val active: Boolean = data.forwardingEnabled && data.enabledApis > 0
-    val colors = AppThemeExtras.statusColors
-
-    SectionCard {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
-            Icon(
-                imageVector = if (active) Icons.Filled.PlayCircle else Icons.Filled.PauseCircle,
-                contentDescription = null,
-                tint = if (active) colors.success else colors.failure,
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(if (active) R.string.dashboard_status_active else R.string.dashboard_status_paused),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(
-                    text = when {
-                        !data.forwardingEnabled -> stringResource(R.string.dashboard_status_forwarding_off)
-                        data.enabledApis == 0 -> stringResource(R.string.dashboard_status_no_apis)
-                        else -> pluralStringResource(R.plurals.dashboard_status_detail, data.enabledApis, data.enabledApis) +
-                            if (data.keepAliveEnabled) " · " + stringResource(R.string.dashboard_keep_alive_on) else ""
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        when {
-            !data.forwardingEnabled -> TextButton(onClick = onOpenSettings) {
-                Text(text = stringResource(R.string.dashboard_open_settings), style = MaterialTheme.typography.labelLarge)
-            }
-            data.enabledApis == 0 -> FilledTonalButton(onClick = onCreateApi) {
-                Icon(Icons.Filled.Add, contentDescription = null)
-                Text(text = stringResource(R.string.api_list_new), style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -150,16 +114,22 @@ private fun RangeSelector(range: DashboardRange, onChange: (DashboardRange) -> U
 private fun StatGrid(data: DashboardData) {
     Column(verticalArrangement = Arrangement.spacedBy(Dimens.listItemGap)) {
         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.listItemGap)) {
-            StatTile(stringResource(R.string.stat_sms_received), data.smsReceived.toString(), Modifier.weight(1f))
-            StatTile(stringResource(R.string.stat_api_calls), data.summary.total.toString(), Modifier.weight(1f))
+            StatTile(stringResource(R.string.stat_sms_received), data.smsReceived.toString(), Icons.Filled.Sms, Modifier.weight(1f))
+            StatTile(stringResource(R.string.stat_api_calls), data.summary.total.toString(), Icons.Filled.Api, Modifier.weight(1f))
         }
         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.listItemGap)) {
             StatTile(
                 stringResource(R.string.stat_success_rate),
-                if (data.summary.total == 0) "—" else UiFormat.percent(data.summary.successRate),
+                if (data.summary.total == 0) NO_VALUE else UiFormat.percent(data.summary.successRate),
+                Icons.Filled.TaskAlt,
                 Modifier.weight(1f),
             )
-            StatTile(stringResource(R.string.stat_avg_latency), UiFormat.duration(data.summary.avgDurationMs), Modifier.weight(1f))
+            StatTile(
+                stringResource(R.string.stat_avg_latency),
+                if (data.summary.total == 0) NO_VALUE else UiFormat.duration(data.summary.avgDurationMs),
+                Icons.Filled.Speed,
+                Modifier.weight(1f),
+            )
         }
     }
 }
@@ -169,33 +139,31 @@ private fun TopApisCard(data: DashboardData) {
     val maxTotal: Int = data.topApis.maxOfOrNull { it.total } ?: 0
     val deletedName: String = stringResource(R.string.dashboard_deleted_api)
 
-    SectionCard(title = stringResource(R.string.dashboard_top_apis)) {
-        if (data.topApis.isEmpty()) {
-            Text(
-                text = stringResource(R.string.dashboard_no_calls),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    SectionCard(title = stringResource(R.string.dashboard_top_apis), icon = Icons.Filled.Leaderboard) {
+        if (data.topApis.isEmpty()) NoCallsText()
         data.topApis.forEach { ApiBreakdownRow(item = it, maxTotal = maxTotal, fallbackName = deletedName) }
     }
 }
 
 @Composable
 private fun RecentCallsCard(data: DashboardData, onOpenCall: (Long) -> Unit, onOpenHistory: () -> Unit) {
-    SectionCard(title = stringResource(R.string.dashboard_recent)) {
-        if (data.recent.isEmpty()) {
-            Text(
-                text = stringResource(R.string.dashboard_no_calls),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    SectionCard(title = stringResource(R.string.dashboard_recent), icon = Icons.Filled.History) {
+        if (data.recent.isEmpty()) NoCallsText()
         data.recent.forEach { CallLogRow(log = it, onClick = { onOpenCall(it.id) }, horizontalPadding = 0.dp) }
         if (data.recent.isNotEmpty()) {
             TextButton(onClick = onOpenHistory) {
                 Text(text = stringResource(R.string.dashboard_see_all), style = MaterialTheme.typography.labelLarge)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.padding(start = Dimens.smallGap))
             }
         }
     }
+}
+
+@Composable
+private fun NoCallsText() {
+    Text(
+        text = stringResource(R.string.dashboard_no_calls),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }

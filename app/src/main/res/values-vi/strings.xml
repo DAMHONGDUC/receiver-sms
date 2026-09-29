@@ -32,7 +32,6 @@
     <string name="api_list_delete_message">%1$s sẽ không nhận SMS nữa. Lịch sử gọi vẫn được giữ lại.</string>
     <string name="api_list_view_history">Xem lịch sử</string>
     <string name="api_filter_any">bất kỳ</string>
-    <string name="api_filter_summary">Từ: %1$s · Chứa: %2$s</string>
     <string name="api_filter_regex_suffix">(regex)</string>
     <string name="editor_title_new">Thêm API</string>
     <string name="editor_title_edit">Sửa API</string>
@@ -91,7 +90,6 @@
     <string name="detail_title">Chi tiết lượt gọi</string>
     <string name="detail_not_found">Không tìm thấy lượt gọi</string>
     <string name="detail_not_found_message">Có thể đã bị xoá hoặc dọn dẹp theo thời hạn lưu.</string>
-    <string name="detail_api">API</string>
     <string name="detail_time">Thời gian</string>
     <string name="detail_duration">Thời lượng</string>
     <string name="detail_attempt">Lần thử</string>
@@ -117,7 +115,7 @@
     <string name="dashboard_status_paused">Đang tạm dừng</string>
     <string name="dashboard_status_forwarding_off">Đã tắt trong cài đặt</string>
     <string name="dashboard_status_no_apis">Chưa có API nào được bật</string>
-    <string name="dashboard_keep_alive_on">đang giữ chạy nền</string>
+    <string name="dashboard_keep_alive_on">Đang chạy nền</string>
     <string name="dashboard_open_settings">Mở cài đặt</string>
     <string name="dashboard_calls_per_day">Lượt gọi theo ngày</string>
     <string name="dashboard_top_apis">API gọi nhiều nhất</string>
@@ -167,6 +165,21 @@
     <string name="notification_work_title">Đang chuyển tiếp SMS…</string>
     <string name="notification_failure_title">%1$s gọi thất bại</string>
     <string name="notification_failure_text">SMS từ %1$s · %2$s</string>
+    <string name="api_filter_from">Từ: %1$s</string>
+    <string name="api_filter_contains">Chứa: %1$s</string>
+    <string name="dashboard_status_listening">SMS phù hợp được gửi tới API của bạn tự động.</string>
+    <string name="dashboard_keep_alive_off">Không chạy nền</string>
+    <string name="history_today">Hôm nay</string>
+    <string name="history_yesterday">Hôm qua</string>
+    <string name="settings_section_appearance">Giao diện</string>
+    <string name="settings_theme">Chủ đề</string>
+    <string name="settings_theme_system">Hệ thống</string>
+    <string name="settings_theme_light">Sáng</string>
+    <string name="settings_theme_dark">Tối</string>
+    <string name="settings_dynamic_color">Màu động</string>
+    <string name="settings_dynamic_color_desc">Dùng màu theo hình nền của bạn.</string>
+    <string name="settings_language">Ngôn ngữ</string>
+    <string name="settings_language_system">Theo hệ thống</string>
     <plurals name="dashboard_status_detail">
         <item quantity="other">%1$d API đang bật</item>
     </plurals>

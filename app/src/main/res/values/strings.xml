@@ -33,7 +33,6 @@
     <string name="api_list_delete_message">%1$s will stop receiving SMS. Its call history is kept.</string>
     <string name="api_list_view_history">View history</string>
     <string name="api_filter_any">any</string>
-    <string name="api_filter_summary">From: %1$s · Contains: %2$s</string>
     <string name="api_filter_regex_suffix">(regex)</string>
     <string name="editor_title_new">New API</string>
     <string name="editor_title_edit">Edit API</string>
@@ -93,7 +92,6 @@
     <string name="detail_title">Call details</string>
     <string name="detail_not_found">Call not found</string>
     <string name="detail_not_found_message">It may have been deleted or cleaned up by retention.</string>
-    <string name="detail_api">API</string>
     <string name="detail_time">Time</string>
     <string name="detail_duration">Duration</string>
     <string name="detail_attempt">Attempt</string>
@@ -119,7 +117,7 @@
     <string name="dashboard_status_paused">Forwarding is paused</string>
     <string name="dashboard_status_forwarding_off">Turned off in settings</string>
     <string name="dashboard_status_no_apis">No active API yet</string>
-    <string name="dashboard_keep_alive_on">keep-alive on</string>
+    <string name="dashboard_keep_alive_on">Keep-alive on</string>
     <string name="dashboard_open_settings">Open settings</string>
     <string name="dashboard_calls_per_day">Calls per day</string>
     <string name="dashboard_top_apis">Top APIs</string>
@@ -131,7 +129,7 @@
     <string name="stat_api_calls">API calls</string>
     <string name="stat_success_rate">Success rate</string>
     <string name="stat_avg_latency">Avg. latency</string>
-    <string name="chart_summary">Calls over %1$d days: %2$d succeeded, %3$d failed.</string>
+    <string name="chart_summary">Calls per day, range of %1$d: %2$d succeeded, %3$d failed.</string>
     <string name="chart_tooltip">%1$s · success: %2$d · failed: %3$d</string>
     <string name="breakdown_value">%1$d/%2$d OK</string>
     <string name="setup_title">Finish setup</string>
@@ -169,6 +167,21 @@
     <string name="notification_work_title">Forwarding SMS…</string>
     <string name="notification_failure_title">%1$s failed</string>
     <string name="notification_failure_text">SMS from %1$s · %2$s</string>
+    <string name="api_filter_from">From: %1$s</string>
+    <string name="api_filter_contains">Contains: %1$s</string>
+    <string name="dashboard_status_listening">Matching SMS are sent to your APIs automatically.</string>
+    <string name="dashboard_keep_alive_off">Keep-alive off</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Dynamic color</string>
+    <string name="settings_dynamic_color_desc">Use colors from your wallpaper.</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System default</string>
     <plurals name="dashboard_status_detail">
         <item quantity="one">%1$d active API</item>
         <item quantity="other">%1$d active APIs</item>

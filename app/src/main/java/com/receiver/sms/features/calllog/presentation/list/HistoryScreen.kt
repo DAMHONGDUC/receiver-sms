@@ -1,5 +1,6 @@
 package com.receiver.sms.features.calllog.presentation.list
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,12 +10,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,9 +42,14 @@ import com.receiver.sms.core.ui.LoadingState
 import com.receiver.sms.core.ui.MessageEffect
 import com.receiver.sms.core.ui.ScreenLevel
 import com.receiver.sms.core.ui.ScreenScaffold
+import com.receiver.sms.core.ui.currentLocale
+import com.receiver.sms.core.time.TimeUtils
 import com.receiver.sms.features.calllog.domain.model.CallLogFilter
 import com.receiver.sms.features.calllog.domain.model.CallStatus
 import com.receiver.sms.features.calllog.presentation.components.CallLogRow
+import com.receiver.sms.features.calllog.presentation.components.RowTimestamp
+import java.time.LocalDate
+import java.util.Locale
 
 @Composable
 fun HistoryScreen(
@@ -71,19 +79,14 @@ fun HistoryScreen(
             HistoryFilters(filter, viewModel)
             when (val current: HistoryState = state) {
                 HistoryState.Loading -> LoadingState()
-                is HistoryState.Loaded -> if (current.logs.isEmpty()) {
+                is HistoryState.Loaded -> if (current.isEmpty) {
                     EmptyState(
                         icon = Icons.Filled.History,
                         title = stringResource(R.string.history_empty_title),
                         message = stringResource(R.string.history_empty_message),
                     )
                 } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = Dimens.listItemGap)) {
-                        items(current.logs, key = { it.id }) { log ->
-                            CallLogRow(log = log, onClick = { onOpenCall(log.id) })
-                            HorizontalDivider()
-                        }
-                    }
+                    HistoryList(days = current.days, onOpenCall = onOpenCall)
                 }
             }
         }
@@ -101,6 +104,35 @@ fun HistoryScreen(
 }
 
 @Composable
+private fun HistoryList(days: List<HistoryDay>, onOpenCall: (Long) -> Unit) {
+    val locale: Locale = currentLocale()
+    val today: LocalDate = LocalDate.now()
+
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = Dimens.listItemGap)) {
+        days.forEach { group ->
+            stickyHeader(key = group.day.toEpochDay()) {
+                Text(
+                    text = when (group.day) {
+                        today -> stringResource(R.string.history_today)
+                        today.minusDays(1) -> stringResource(R.string.history_yesterday)
+                        else -> TimeUtils.formatDate(group.day, locale)
+                    },
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = Dimens.screenGutter, vertical = Dimens.inlineGap),
+                )
+            }
+            items(group.logs, key = { it.id }) { log ->
+                CallLogRow(log = log, onClick = { onOpenCall(log.id) }, timestamp = RowTimestamp.TIME)
+            }
+        }
+    }
+}
+
+@Composable
 private fun HistoryFilters(filter: CallLogFilter, viewModel: HistoryViewModel) {
     Column(
         modifier = Modifier.padding(horizontal = Dimens.screenGutter),
@@ -112,6 +144,12 @@ private fun HistoryFilters(filter: CallLogFilter, viewModel: HistoryViewModel) {
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             placeholder = { Text(text = stringResource(R.string.history_search), style = MaterialTheme.typography.bodyMedium) },
             singleLine = true,
+            shape = RoundedCornerShape(Dimens.searchRadius),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedBorderColor = Color.Transparent,
+            ),
             modifier = Modifier.fillMaxWidth(),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {

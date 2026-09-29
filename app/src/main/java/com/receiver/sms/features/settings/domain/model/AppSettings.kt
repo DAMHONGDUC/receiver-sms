@@ -7,11 +7,16 @@ enum class RetentionPeriod(val days: Int?) {
     FOREVER(null),
 }
 
+/** Which colour scheme the app uses; SYSTEM follows the device setting. */
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
 data class AppSettings(
     val forwardingEnabled: Boolean,
     val keepAliveEnabled: Boolean,
     val notifyOnFailure: Boolean,
     val retention: RetentionPeriod,
+    val themeMode: ThemeMode,
+    val dynamicColor: Boolean,
 ) {
     companion object {
         val DEFAULT: AppSettings = AppSettings(
@@ -19,6 +24,8 @@ data class AppSettings(
             keepAliveEnabled = false,
             notifyOnFailure = true,
             retention = RetentionPeriod.MONTH,
+            themeMode = ThemeMode.SYSTEM,
+            dynamicColor = false,
         )
     }
 }

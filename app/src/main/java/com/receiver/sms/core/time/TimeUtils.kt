@@ -5,27 +5,32 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import java.util.Locale
 
 /** All date/time arithmetic and formatting lives here. */
 object TimeUtils {
     const val MILLIS_PER_DAY: Long = 86_400_000L
 
-    private val dateTimeFormatter: DateTimeFormatter =
-        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
-    private val timeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-    private val dayLabelFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM")
+    private const val TIME_PATTERN = "HH:mm"
+    private const val DAY_LABEL_PATTERN = "dd/MM"
 
     fun now(): Long = System.currentTimeMillis()
 
     fun toIso(epochMillis: Long): String = Instant.ofEpochMilli(epochMillis).toString()
 
-    fun formatDateTime(epochMillis: Long, zone: ZoneId = ZoneId.systemDefault()): String =
-        dateTimeFormatter.format(Instant.ofEpochMilli(epochMillis).atZone(zone))
+    /** Formatters take the UI locale so a language switch applies without a process restart. */
+    fun formatDateTime(epochMillis: Long, locale: Locale, zone: ZoneId = ZoneId.systemDefault()): String =
+        DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).withLocale(locale)
+            .format(Instant.ofEpochMilli(epochMillis).atZone(zone))
 
-    fun formatTime(epochMillis: Long, zone: ZoneId = ZoneId.systemDefault()): String =
-        timeFormatter.format(Instant.ofEpochMilli(epochMillis).atZone(zone))
+    fun formatTime(epochMillis: Long, locale: Locale, zone: ZoneId = ZoneId.systemDefault()): String =
+        DateTimeFormatter.ofPattern(TIME_PATTERN, locale).format(Instant.ofEpochMilli(epochMillis).atZone(zone))
 
-    fun formatDayLabel(day: LocalDate): String = dayLabelFormatter.format(day)
+    fun formatDate(day: LocalDate, locale: Locale): String =
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale).format(day)
+
+    fun formatDayLabel(day: LocalDate, locale: Locale): String =
+        DateTimeFormatter.ofPattern(DAY_LABEL_PATTERN, locale).format(day)
 
     fun toLocalDate(epochMillis: Long, zone: ZoneId = ZoneId.systemDefault()): LocalDate =
         Instant.ofEpochMilli(epochMillis).atZone(zone).toLocalDate()

@@ -6,6 +6,7 @@ import com.receiver.sms.core.logging.AppLogger
 import com.receiver.sms.features.dispatch.domain.service.KeepAliveController
 import com.receiver.sms.features.settings.domain.model.AppSettings
 import com.receiver.sms.features.settings.domain.model.RetentionPeriod
+import com.receiver.sms.features.settings.domain.model.ThemeMode
 import com.receiver.sms.features.settings.domain.usecase.ObserveSettingsUseCase
 import com.receiver.sms.features.settings.domain.usecase.UpdateSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,10 @@ class SettingsViewModel @Inject constructor(
     fun onNotifyOnFailureChange(enabled: Boolean) = launchLogged("notify") { updateSettings.notifyOnFailure(enabled) }
 
     fun onRetentionChange(retention: RetentionPeriod) = launchLogged("retention") { updateSettings.retention(retention) }
+
+    fun onThemeModeChange(mode: ThemeMode) = launchLogged("theme") { updateSettings.themeMode(mode) }
+
+    fun onDynamicColorChange(enabled: Boolean) = launchLogged("dynamic color") { updateSettings.dynamicColor(enabled) }
 
     fun onKeepAliveChange(enabled: Boolean) = launchLogged("keep-alive") {
         updateSettings.keepAlive(enabled)

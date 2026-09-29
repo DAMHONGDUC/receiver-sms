@@ -10,6 +10,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterAlt
+import androidx.compose.material.icons.filled.Http
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +45,7 @@ private const val BODY_MIN_LINES = 6
 
 @Composable
 internal fun GeneralSection(state: ApiEditorState, viewModel: ApiEditorViewModel) {
-    SectionCard(title = stringResource(R.string.editor_section_general)) {
+    SectionCard(title = stringResource(R.string.editor_section_general), icon = Icons.Filled.Tune) {
         EditorField(
             value = state.draft.name,
             onValueChange = viewModel::onNameChange,
@@ -62,7 +66,7 @@ internal fun GeneralSection(state: ApiEditorState, viewModel: ApiEditorViewModel
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun RequestSection(state: ApiEditorState, viewModel: ApiEditorViewModel) {
-    SectionCard(title = stringResource(R.string.editor_section_request)) {
+    SectionCard(title = stringResource(R.string.editor_section_request), icon = Icons.Filled.Http) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             HttpMethod.entries.forEachIndexed { index, method ->
                 SegmentedButton(
@@ -152,7 +156,7 @@ private fun HeadersEditor(state: ApiEditorState, viewModel: ApiEditorViewModel) 
 internal fun TriggerSection(state: ApiEditorState, viewModel: ApiEditorViewModel) {
     val regex: Boolean = state.draft.filter.mode == MatchMode.REGEX
 
-    SectionCard(title = stringResource(R.string.editor_section_trigger)) {
+    SectionCard(title = stringResource(R.string.editor_section_trigger), icon = Icons.Filled.FilterAlt) {
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
             MatchMode.entries.forEachIndexed { index, mode ->
                 SegmentedButton(
@@ -188,7 +192,7 @@ internal fun TriggerSection(state: ApiEditorState, viewModel: ApiEditorViewModel
 
 @Composable
 internal fun DeliverySection(state: ApiEditorState, viewModel: ApiEditorViewModel) {
-    SectionCard(title = stringResource(R.string.editor_section_delivery)) {
+    SectionCard(title = stringResource(R.string.editor_section_delivery), icon = Icons.Filled.Schedule) {
         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
             EditorField(
                 value = state.timeoutText,

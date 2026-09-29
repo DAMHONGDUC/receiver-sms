@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Receiver_sms" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- AppCompat base so per-app language switching works on Android 12 and below; Compose draws everything else. -->
+    <style name="Theme.Receiver_sms" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
     </style>
 </resources>

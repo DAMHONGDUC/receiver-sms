@@ -32,12 +32,16 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.receiver.sms.R
 import com.receiver.sms.core.theme.AppThemeExtras
 import com.receiver.sms.core.theme.Dimens
 import com.receiver.sms.core.time.TimeUtils
+import com.receiver.sms.core.ui.currentLocale
 import com.receiver.sms.features.calllog.domain.model.DailyCallCount
+import java.util.Locale
 
 private const val GRID_LINES = 3
 private const val NO_SELECTION = -1
@@ -59,6 +63,9 @@ fun CallsBarChart(days: List<DailyCallCount>, modifier: Modifier = Modifier) {
         days.sumOf { it.failed },
     )
     var selected: Int by rememberSaveable(days.size) { mutableIntStateOf(NO_SELECTION) }
+    val locale: Locale = currentLocale()
+    // Days run oldest to newest in reading direction, so bars mirror in RTL to match the axis labels.
+    val rtl: Boolean = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
         Row(horizontalArrangement = Arrangement.spacedBy(Dimens.sectionGap)) {
@@ -67,7 +74,7 @@ fun CallsBarChart(days: List<DailyCallCount>, modifier: Modifier = Modifier) {
         }
         Text(
             text = days.getOrNull(selected)?.let {
-                stringResource(R.string.chart_tooltip, TimeUtils.formatDayLabel(it.day), it.success, it.failed)
+                stringResource(R.string.chart_tooltip, TimeUtils.formatDayLabel(it.day, locale), it.success, it.failed)
             } ?: pluralStringResource(R.plurals.chart_max, maxTotal, maxTotal),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -79,7 +86,8 @@ fun CallsBarChart(days: List<DailyCallCount>, modifier: Modifier = Modifier) {
                 .clearAndSetSemantics { contentDescription = summary }
                 .pointerInput(days) {
                     detectTapGestures { offset ->
-                        val index: Int = (offset.x / (size.width / days.size.coerceAtLeast(1))).toInt()
+                        val slotIndex: Int = (offset.x / (size.width / days.size.coerceAtLeast(1))).toInt()
+                        val index: Int = if (rtl) days.lastIndex - slotIndex else slotIndex
                         selected = if (index == selected) NO_SELECTION else index.coerceIn(0, days.lastIndex)
                     }
                 },
@@ -90,13 +98,14 @@ fun CallsBarChart(days: List<DailyCallCount>, modifier: Modifier = Modifier) {
 
             days.forEachIndexed { index, day ->
                 val alpha: Float = if (selected == NO_SELECTION || selected == index) 1f else DIMMED_ALPHA
-                val left: Float = index * slot + (slot - barWidth) / 2f
+                val slotIndex: Int = if (rtl) days.lastIndex - index else index
+                val left: Float = slotIndex * slot + (slot - barWidth) / 2f
                 drawDayBar(day, left, barWidth, maxTotal, colors.success.copy(alpha = alpha), colors.failure.copy(alpha = alpha))
             }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            days.firstOrNull()?.let { AxisLabel(TimeUtils.formatDayLabel(it.day)) }
-            days.lastOrNull()?.let { AxisLabel(TimeUtils.formatDayLabel(it.day)) }
+            days.firstOrNull()?.let { AxisLabel(TimeUtils.formatDayLabel(it.day, locale)) }
+            days.lastOrNull()?.let { AxisLabel(TimeUtils.formatDayLabel(it.day, locale)) }
         }
     }
 }

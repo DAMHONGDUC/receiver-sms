@@ -5,11 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,8 +22,10 @@ import androidx.compose.material.icons.filled.Api
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -30,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,6 +56,7 @@ import com.receiver.sms.core.theme.CodeFontFamily
 import com.receiver.sms.core.theme.Dimens
 import com.receiver.sms.core.ui.ConfirmDialog
 import com.receiver.sms.core.ui.EmptyState
+import com.receiver.sms.core.ui.IconBadge
 import com.receiver.sms.core.ui.LoadingState
 import com.receiver.sms.core.ui.MessageEffect
 import com.receiver.sms.core.ui.MethodTag
@@ -133,6 +140,7 @@ fun ApiListScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ApiConfigCard(
     config: ApiConfig,
@@ -142,6 +150,9 @@ private fun ApiConfigCard(
     onOpenHistory: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val any: String = stringResource(R.string.api_filter_any)
+    val regexSuffix: String = if (config.filter.mode == MatchMode.REGEX) " · " + stringResource(R.string.api_filter_regex_suffix) else ""
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,10 +161,15 @@ private fun ApiConfigCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(
-            modifier = Modifier.padding(start = Dimens.cardPadding, top = Dimens.inlineGap, bottom = Dimens.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(Dimens.smallGap),
+            modifier = Modifier.padding(start = Dimens.cardPadding, top = Dimens.cardPadding, bottom = Dimens.cardPadding),
+            verticalArrangement = Arrangement.spacedBy(Dimens.inlineGap),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.cardPadding)) {
+                IconBadge(
+                    icon = Icons.Filled.Api,
+                    containerColor = if (config.enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = if (config.enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Text(
                     text = config.name,
                     style = MaterialTheme.typography.titleMedium,
@@ -165,38 +181,49 @@ private fun ApiConfigCard(
                 ApiCardMenu(onEdit = onClick, onDuplicate = onDuplicate, onOpenHistory = onOpenHistory, onDelete = onDelete)
             }
             Row(
+                modifier = Modifier.padding(end = Dimens.cardPadding),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap),
-                modifier = Modifier.padding(end = Dimens.cardPadding),
             ) {
                 MethodTag(config.method.name)
                 Text(
                     text = config.url,
                     style = MaterialTheme.typography.bodySmall.copy(fontFamily = CodeFontFamily),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Text(
-                text = filterSummary(config),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+            FlowRow(
                 modifier = Modifier.padding(end = Dimens.cardPadding),
-            )
+                horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap),
+                verticalArrangement = Arrangement.spacedBy(Dimens.smallGap),
+            ) {
+                FilterTag(Icons.Filled.Person, stringResource(R.string.api_filter_from, config.filter.senders.ifBlank { any }))
+                FilterTag(Icons.Filled.FilterAlt, stringResource(R.string.api_filter_contains, config.filter.keyword.ifBlank { any }) + regexSuffix)
+            }
         }
     }
 }
 
 @Composable
-private fun filterSummary(config: ApiConfig): String {
-    val any: String = stringResource(R.string.api_filter_any)
-    val senders: String = config.filter.senders.ifBlank { any }
-    val keyword: String = config.filter.keyword.ifBlank { any }
-    val mode: String = if (config.filter.mode == MatchMode.REGEX) " " + stringResource(R.string.api_filter_regex_suffix) else ""
-
-    return stringResource(R.string.api_filter_summary, senders, keyword) + mode
+private fun FilterTag(icon: ImageVector, label: String) {
+    Surface(shape = RoundedCornerShape(Dimens.chipRadius), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+        Row(
+            modifier = Modifier.padding(horizontal = Dimens.inlineGap, vertical = Dimens.smallGap),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Dimens.smallGap),
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(Dimens.iconSmall), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
 }
 
 @Composable

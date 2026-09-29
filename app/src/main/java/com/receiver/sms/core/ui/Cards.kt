@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import com.receiver.sms.R
 import com.receiver.sms.core.theme.CodeFontFamily
@@ -33,6 +35,7 @@ import com.receiver.sms.core.theme.Dimens
 fun SectionCard(
     modifier: Modifier = Modifier,
     title: String? = null,
+    icon: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Card(
@@ -44,7 +47,14 @@ fun SectionCard(
             modifier = Modifier.padding(Dimens.cardPadding),
             verticalArrangement = Arrangement.spacedBy(Dimens.inlineGap),
         ) {
-            if (title != null) Text(text = title, style = MaterialTheme.typography.titleMedium)
+            if (title != null) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
+                    if (icon != null) {
+                        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(Dimens.iconMedium))
+                    }
+                    Text(text = title, style = MaterialTheme.typography.titleMedium)
+                }
+            }
             content()
         }
     }

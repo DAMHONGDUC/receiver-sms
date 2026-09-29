@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material3.Icon
@@ -40,7 +41,7 @@ fun PermissionSetupCard(status: PermissionStatus, modifier: Modifier = Modifier)
         if (result.values.any { !it }) PermissionUtils.openAppSettings(context)
     }
 
-    SectionCard(modifier = modifier, title = stringResource(R.string.setup_title)) {
+    SectionCard(modifier = modifier, title = stringResource(R.string.setup_title), icon = Icons.Filled.Checklist) {
         Text(
             text = stringResource(R.string.setup_message),
             style = MaterialTheme.typography.bodySmall,

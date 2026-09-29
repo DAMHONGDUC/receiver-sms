@@ -64,6 +64,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    androidResources {
+        // Declares the supported languages to Android 13+ per-app language settings.
+        generateLocaleConfig = true
+    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -92,6 +96,7 @@ dependencies {
     // androidx core
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.service)

@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -25,19 +26,21 @@ import androidx.compose.ui.unit.dp
 import com.receiver.sms.R
 import com.receiver.sms.core.theme.AppThemeExtras
 import com.receiver.sms.core.theme.Dimens
+import com.receiver.sms.core.ui.IconBadge
 import com.receiver.sms.features.calllog.domain.model.ApiCallBreakdown
 
 private val SEGMENT_GAP = 2.dp
 
-/** A headline number with its label. */
+/** A headline number with its icon and label. */
 @Composable
-fun StatTile(label: String, value: String, modifier: Modifier = Modifier) {
+fun StatTile(label: String, value: String, icon: ImageVector, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(Dimens.cardRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(modifier = Modifier.padding(Dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(Dimens.smallGap)) {
+        Column(modifier = Modifier.padding(Dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
+            IconBadge(icon = icon, size = Dimens.badgeSmall)
             Text(text = value, style = MaterialTheme.typography.headlineSmall)
             Text(
                 text = label,

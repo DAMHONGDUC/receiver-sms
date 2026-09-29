@@ -2,6 +2,7 @@ package com.receiver.sms.features.settings.domain.repository
 
 import com.receiver.sms.features.settings.domain.model.AppSettings
 import com.receiver.sms.features.settings.domain.model.RetentionPeriod
+import com.receiver.sms.features.settings.domain.model.ThemeMode
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
@@ -16,4 +17,8 @@ interface SettingsRepository {
     suspend fun setNotifyOnFailure(enabled: Boolean)
 
     suspend fun setRetention(retention: RetentionPeriod)
+
+    suspend fun setThemeMode(mode: ThemeMode)
+
+    suspend fun setDynamicColor(enabled: Boolean)
 }

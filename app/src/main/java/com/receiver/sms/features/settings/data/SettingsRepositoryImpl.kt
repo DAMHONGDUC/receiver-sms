@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.receiver.sms.core.logging.AppLogger
 import com.receiver.sms.features.settings.domain.model.AppSettings
 import com.receiver.sms.features.settings.domain.model.RetentionPeriod
+import com.receiver.sms.features.settings.domain.model.ThemeMode
 import com.receiver.sms.features.settings.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -23,6 +24,8 @@ private object Keys {
     val KEEP_ALIVE: Preferences.Key<Boolean> = booleanPreferencesKey("keep_alive_enabled")
     val NOTIFY_FAILURE: Preferences.Key<Boolean> = booleanPreferencesKey("notify_on_failure")
     val RETENTION: Preferences.Key<String> = stringPreferencesKey("retention")
+    val THEME_MODE: Preferences.Key<String> = stringPreferencesKey("theme_mode")
+    val DYNAMIC_COLOR: Preferences.Key<Boolean> = booleanPreferencesKey("dynamic_color")
 }
 
 class SettingsRepositoryImpl @Inject constructor(
@@ -53,6 +56,14 @@ class SettingsRepositoryImpl @Inject constructor(
         dataStore.edit { it[Keys.RETENTION] = retention.name }
     }
 
+    override suspend fun setThemeMode(mode: ThemeMode) {
+        dataStore.edit { it[Keys.THEME_MODE] = mode.name }
+    }
+
+    override suspend fun setDynamicColor(enabled: Boolean) {
+        dataStore.edit { it[Keys.DYNAMIC_COLOR] = enabled }
+    }
+
     private fun toSettings(prefs: Preferences): AppSettings {
         val defaults: AppSettings = AppSettings.DEFAULT
 
@@ -62,6 +73,8 @@ class SettingsRepositoryImpl @Inject constructor(
             notifyOnFailure = prefs[Keys.NOTIFY_FAILURE] ?: defaults.notifyOnFailure,
             retention = RetentionPeriod.entries.firstOrNull { it.name == prefs[Keys.RETENTION] }
                 ?: defaults.retention,
+            themeMode = ThemeMode.entries.firstOrNull { it.name == prefs[Keys.THEME_MODE] } ?: defaults.themeMode,
+            dynamicColor = prefs[Keys.DYNAMIC_COLOR] ?: defaults.dynamicColor,
         )
     }
 }
