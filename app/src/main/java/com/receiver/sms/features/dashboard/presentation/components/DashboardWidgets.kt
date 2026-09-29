@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import com.receiver.sms.R
 import com.receiver.sms.core.theme.AppThemeExtras
 import com.receiver.sms.core.theme.Dimens
+import com.receiver.sms.core.theme.tabularNumbers
+import com.receiver.sms.core.ui.AppCardDefaults
 import com.receiver.sms.core.ui.IconBadge
 import com.receiver.sms.features.calllog.domain.model.ApiCallBreakdown
 
@@ -38,10 +40,11 @@ fun StatTile(label: String, value: String, icon: ImageVector, modifier: Modifier
         modifier = modifier,
         shape = RoundedCornerShape(Dimens.cardRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        border = AppCardDefaults.border(),
     ) {
         Column(modifier = Modifier.padding(Dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
             IconBadge(icon = icon, size = Dimens.badgeSmall)
-            Text(text = value, style = MaterialTheme.typography.headlineSmall)
+            Text(text = value, style = MaterialTheme.typography.headlineSmall.tabularNumbers())
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,

@@ -42,10 +42,11 @@ fun SectionCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(Dimens.cardRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        border = AppCardDefaults.border(),
     ) {
         Column(
             modifier = Modifier.padding(Dimens.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(Dimens.inlineGap),
+            verticalArrangement = Arrangement.spacedBy(Dimens.listItemGap),
         ) {
             if (title != null) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {

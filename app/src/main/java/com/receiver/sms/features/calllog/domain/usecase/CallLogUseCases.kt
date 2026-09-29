@@ -23,6 +23,10 @@ class ObserveCallLogUseCase @Inject constructor(private val repository: CallLogR
     operator fun invoke(id: Long): Flow<CallLog?> = repository.observeById(id)
 }
 
+class ObserveCallAttemptsUseCase @Inject constructor(private val repository: CallLogRepository) {
+    operator fun invoke(smsId: Long, configId: Long): Flow<List<CallLog>> = repository.observeAttempts(smsId, configId)
+}
+
 class DeleteCallLogUseCase @Inject constructor(private val repository: CallLogRepository) {
     suspend operator fun invoke(id: Long) {
         repository.delete(id)

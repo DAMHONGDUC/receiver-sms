@@ -21,6 +21,13 @@ import javax.inject.Inject
 
 private const val TOP_API_LIMIT = 5
 
+private data class DashboardStatus(
+    val smsReceived: Int,
+    val enabledApis: Int,
+    val settings: AppSettings,
+    val hasForwardedSms: Boolean,
+)
+
 class ObserveDashboardUseCase @Inject constructor(
     private val callLogRepository: CallLogRepository,
     private val smsRepository: ReceivedSmsRepository,
@@ -34,13 +41,14 @@ class ObserveDashboardUseCase @Inject constructor(
         val timeline: Flow<List<CallPoint>> = callLogRepository.observeTimeline(from)
         val breakdown: Flow<List<ApiCallBreakdown>> = callLogRepository.observeBreakdown(from, TOP_API_LIMIT)
         val recent: Flow<List<CallLog>> = callLogRepository.observe(CallLogFilter.ALL, CallLogLimits.RECENT_LIMIT)
-        val status: Flow<Triple<Int, Int, AppSettings>> = combine(
+        val status: Flow<DashboardStatus> = combine(
             smsRepository.observeCountSince(from),
             configRepository.observeEnabledCount(),
             settingsRepository.settings,
-        ) { sms, enabled, settings -> Triple(sms, enabled, settings) }
+            callLogRepository.observeHasSuccess(),
+        ) { sms, enabled, settings, hasSuccess -> DashboardStatus(sms, enabled, settings, hasSuccess) }
 
-        return combine(summary, timeline, breakdown, recent, status) { s, points, top, latest, (sms, enabled, settings) ->
+        return combine(summary, timeline, breakdown, recent, status) { s, points, top, latest, (sms, enabled, settings, hasSuccess) ->
             DashboardData(
                 range = range,
                 summary = s,
@@ -51,6 +59,7 @@ class ObserveDashboardUseCase @Inject constructor(
                 enabledApis = enabled,
                 forwardingEnabled = settings.forwardingEnabled,
                 keepAliveEnabled = settings.keepAliveEnabled,
+                hasForwardedSms = hasSuccess,
             )
         }
     }

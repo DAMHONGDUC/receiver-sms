@@ -20,6 +20,12 @@ interface CallLogDao {
     )
     fun observe(status: String?, configId: Long?, query: String, limit: Int): Flow<List<CallLogEntity>>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM call_logs WHERE status = :successStatus AND `trigger` != :excludedTrigger)")
+    fun observeHasSuccess(successStatus: String, excludedTrigger: String): Flow<Boolean>
+
+    @Query("SELECT * FROM call_logs WHERE sms_id = :smsId AND config_id = :configId ORDER BY created_at ASC")
+    fun observeAttempts(smsId: Long, configId: Long): Flow<List<CallLogEntity>>
+
     @Query("SELECT * FROM call_logs WHERE id = :id")
     fun observeById(id: Long): Flow<CallLogEntity?>
 

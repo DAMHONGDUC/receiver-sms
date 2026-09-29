@@ -12,6 +12,12 @@ interface CallLogRepository {
 
     fun observeById(id: Long): Flow<CallLog?>
 
+    /** Every attempt (first call and retries) for one SMS sent to one API, oldest first. */
+    fun observeAttempts(smsId: Long, configId: Long): Flow<List<CallLog>>
+
+    /** True once any real (non-test) call has succeeded. */
+    fun observeHasSuccess(): Flow<Boolean>
+
     suspend fun getById(id: Long): CallLog?
 
     suspend fun insert(log: CallLog): Long

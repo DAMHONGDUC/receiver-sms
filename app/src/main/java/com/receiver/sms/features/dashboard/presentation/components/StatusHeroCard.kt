@@ -1,6 +1,7 @@
 package com.receiver.sms.features.dashboard.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Api
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.PauseCircle
@@ -27,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
@@ -37,11 +39,12 @@ import com.receiver.sms.core.ui.IconBadge
 import com.receiver.sms.features.dashboard.domain.model.DashboardData
 
 private const val TAG_ALPHA = 0.12f
+private const val GLOW_ALPHA = 0.35f
 
 /** Is forwarding live, and what to do if not. Active uses the primary container, paused a neutral one. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StatusHeroCard(data: DashboardData, onOpenSettings: () -> Unit, onCreateApi: () -> Unit) {
+fun StatusHeroCard(data: DashboardData, onOpenSettings: () -> Unit) {
     val active: Boolean = data.forwardingEnabled && data.enabledApis > 0
     val container: Color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
     val content: Color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
@@ -53,12 +56,23 @@ fun StatusHeroCard(data: DashboardData, onOpenSettings: () -> Unit, onCreateApi:
     ) {
         Column(modifier = Modifier.padding(Dimens.heroPadding), verticalArrangement = Arrangement.spacedBy(Dimens.cardPadding)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.cardPadding)) {
-                IconBadge(
-                    icon = if (active) Icons.Filled.Sensors else Icons.Filled.PauseCircle,
-                    size = Dimens.badgeLarge,
-                    containerColor = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                    contentColor = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.surface,
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    // A static, soft glow marks "live"; no pulsing so the screen stays calm.
+                    if (active) {
+                        val glow: Color = MaterialTheme.colorScheme.primary
+                        Box(
+                            modifier = Modifier
+                                .size(Dimens.glow)
+                                .drawBehind { drawCircle(Brush.radialGradient(listOf(glow.copy(alpha = GLOW_ALPHA), Color.Transparent))) },
+                        )
+                    }
+                    IconBadge(
+                        icon = if (active) Icons.Filled.Sensors else Icons.Filled.PauseCircle,
+                        size = Dimens.badgeLarge,
+                        containerColor = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        contentColor = if (active) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.surface,
+                    )
+                }
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Dimens.smallGap)) {
                     Text(
                         text = stringResource(if (active) R.string.dashboard_status_active else R.string.dashboard_status_paused),
@@ -82,9 +96,8 @@ fun StatusHeroCard(data: DashboardData, onOpenSettings: () -> Unit, onCreateApi:
                     content,
                 )
             }
-            when {
-                !data.forwardingEnabled -> HeroButton(Icons.Filled.Settings, stringResource(R.string.dashboard_open_settings), onOpenSettings)
-                data.enabledApis == 0 -> HeroButton(Icons.Filled.Add, stringResource(R.string.api_list_new), onCreateApi)
+            if (!data.forwardingEnabled) {
+                HeroButton(Icons.Filled.Settings, stringResource(R.string.dashboard_open_settings), onOpenSettings)
             }
         }
     }

@@ -10,14 +10,18 @@ import com.receiver.sms.core.navigation.CallDetailRoute
 import com.receiver.sms.core.ui.UiMessage
 import com.receiver.sms.features.calllog.domain.model.CallLog
 import com.receiver.sms.features.calllog.domain.usecase.DeleteCallLogUseCase
+import com.receiver.sms.features.calllog.domain.usecase.ObserveCallAttemptsUseCase
 import com.receiver.sms.features.calllog.domain.usecase.ObserveCallLogUseCase
 import com.receiver.sms.features.dispatch.domain.usecase.RetryCallUseCase
 import com.receiver.sms.features.dispatch.domain.usecase.RetryResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -30,7 +34,8 @@ private const val STOP_TIMEOUT_MILLIS = 5_000L
 sealed interface CallDetailState {
     data object Loading : CallDetailState
     data object NotFound : CallDetailState
-    data class Loaded(val log: CallLog) : CallDetailState
+    /** [attempts] is every try for the same SMS and API, oldest first; empty for test calls. */
+    data class Loaded(val log: CallLog, val attempts: List<CallLog>) : CallDetailState
 }
 
 sealed interface CallDetailEvent {
@@ -38,10 +43,12 @@ sealed interface CallDetailEvent {
     data class Message(val message: UiMessage) : CallDetailEvent
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class CallDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     observeCallLog: ObserveCallLogUseCase,
+    observeAttempts: ObserveCallAttemptsUseCase,
     private val retryCall: RetryCallUseCase,
     private val deleteCallLog: DeleteCallLogUseCase,
 ) : ViewModel() {
@@ -50,7 +57,15 @@ class CallDetailViewModel @Inject constructor(
 
     val events: Flow<CallDetailEvent> = eventChannel.receiveAsFlow()
     val state: StateFlow<CallDetailState> = observeCallLog(logId)
-        .map { log -> if (log == null) CallDetailState.NotFound else CallDetailState.Loaded(log) }
+        .flatMapLatest { log ->
+            val smsId: Long? = log?.smsId
+            val configId: Long? = log?.configId
+            when {
+                log == null -> flowOf(CallDetailState.NotFound)
+                smsId == null || configId == null -> flowOf(CallDetailState.Loaded(log, emptyList()))
+                else -> observeAttempts(smsId, configId).map { CallDetailState.Loaded(log, it) }
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CallDetailState.Loading)
 
     fun onRetry() {

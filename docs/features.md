@@ -4,10 +4,11 @@
 |---|---|---|
 | API configs | URL, method (GET/POST/PUT/PATCH/DELETE), headers, body template, timeout (1–120 s), retries (0–10), enable switch | [apiconfig](../app/src/main/java/com/receiver/sms/features/apiconfig) |
 | Rules | Sender list + message keyword; `Contains` (case-insensitive, ignores spaces/dashes in numbers) or `Regex` | [SmsMatcher.kt](../app/src/main/java/com/receiver/sms/features/dispatch/domain/service/SmsMatcher.kt) |
-| Test request | Sends the unsaved config with a sample SMS; stored in history as `TEST`, excluded from stats | [TestCallDialog.kt](../app/src/main/java/com/receiver/sms/features/apiconfig/presentation/editor/TestCallDialog.kt) |
+| Getting started | Dashboard card for new users: permissions → first API → first forwarded SMS, with progress; hidden when all done | [GettingStartedCard.kt](../app/src/main/java/com/receiver/sms/features/dashboard/presentation/components/GettingStartedCard.kt) |
+| Test request | Sends the unsaved config with a sample SMS, shows "It works!" or what to fix; stored in history as `TEST`, excluded from stats | [TestCallDialog.kt](../app/src/main/java/com/receiver/sms/features/apiconfig/presentation/editor/TestCallDialog.kt) |
 | Delivery | One WorkManager job per matched API; needs network; expedited; exponential backoff from 15 s | [WorkManagerCallScheduler.kt](../app/src/main/java/com/receiver/sms/features/dispatch/data/work/WorkManagerCallScheduler.kt) |
 | Keep-alive | Optional `specialUse` foreground service, restarted on boot and app update | [KeepAliveService.kt](../app/src/main/java/com/receiver/sms/features/dispatch/platform/KeepAliveService.kt) |
-| History | Every attempt with request/response; search, status filter, per-API view, manual retry, delete, copy | [calllog](../app/src/main/java/com/receiver/sms/features/calllog) |
+| History | Grouped by day; search, status and per-API filter chips; call detail with delivery timeline of every attempt, retry and edit in the bottom bar | [calllog](../app/src/main/java/com/receiver/sms/features/calllog) |
 | Dashboard | SMS received, API calls, success rate, avg latency, calls per day, top APIs, recent calls (7/30 days) | [dashboard](../app/src/main/java/com/receiver/sms/features/dashboard) |
 | Failure notification | Posted when the last attempt fails (setting, default on) | [NotificationHelper.kt](../app/src/main/java/com/receiver/sms/features/dispatch/platform/NotificationHelper.kt) |
 | Retention | Daily cleanup of logs and SMS older than 7/30/90 days or never | [LogCleanupWorker.kt](../app/src/main/java/com/receiver/sms/features/dispatch/data/work/LogCleanupWorker.kt) |

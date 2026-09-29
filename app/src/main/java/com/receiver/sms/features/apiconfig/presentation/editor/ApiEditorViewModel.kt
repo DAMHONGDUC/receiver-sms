@@ -54,7 +54,7 @@ data class ApiEditorState(
 }
 
 sealed interface ApiEditorEvent {
-    data object Saved : ApiEditorEvent
+    data class Saved(val name: String) : ApiEditorEvent
     data class Message(val message: UiMessage) : ApiEditorEvent
 }
 
@@ -123,7 +123,7 @@ class ApiEditorViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 when (val result: SaveApiConfigResult = saveApiConfig(draft)) {
-                    is SaveApiConfigResult.Saved -> eventChannel.send(ApiEditorEvent.Saved)
+                    is SaveApiConfigResult.Saved -> eventChannel.send(ApiEditorEvent.Saved(draft.name.trim()))
                     is SaveApiConfigResult.Invalid -> {
                         mutableState.update { it.copy(errors = result.errors) }
                         eventChannel.send(ApiEditorEvent.Message(UiMessage(R.string.editor_fix_errors)))

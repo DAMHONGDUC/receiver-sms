@@ -8,14 +8,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Api
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.FilterAltOff
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +49,7 @@ import com.receiver.sms.core.ui.ScreenLevel
 import com.receiver.sms.core.ui.ScreenScaffold
 import com.receiver.sms.core.ui.currentLocale
 import com.receiver.sms.core.time.TimeUtils
+import com.receiver.sms.features.apiconfig.domain.model.ApiConfig
 import com.receiver.sms.features.calllog.domain.model.CallLogFilter
 import com.receiver.sms.features.calllog.domain.model.CallStatus
 import com.receiver.sms.features.calllog.presentation.components.CallLogRow
@@ -54,11 +60,13 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(
     onOpenCall: (Long) -> Unit,
+    onOpenApis: () -> Unit,
     onNavigateUp: (() -> Unit)?,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
     val state: HistoryState by viewModel.state.collectAsStateWithLifecycle()
     val filter: CallLogFilter by viewModel.filter.collectAsStateWithLifecycle()
+    val apis: List<ApiConfig> by viewModel.apis.collectAsStateWithLifecycle()
     val snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
     var confirmClear: Boolean by rememberSaveable { mutableStateOf(false) }
 
@@ -76,14 +84,24 @@ fun HistoryScreen(
         },
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            HistoryFilters(filter, viewModel)
+            HistoryFilters(filter, apis, viewModel)
             when (val current: HistoryState = state) {
                 HistoryState.Loading -> LoadingState()
-                is HistoryState.Loaded -> if (current.isEmpty) {
+                is HistoryState.Loaded -> if (current.isEmpty && filter != CallLogFilter.ALL) {
+                    EmptyState(
+                        icon = Icons.Filled.FilterAltOff,
+                        title = stringResource(R.string.history_empty_filtered_title),
+                        message = stringResource(R.string.history_empty_filtered_message),
+                        actionLabel = stringResource(R.string.history_clear_filters),
+                        onAction = viewModel::onClearFilters,
+                    )
+                } else if (current.isEmpty) {
                     EmptyState(
                         icon = Icons.Filled.History,
                         title = stringResource(R.string.history_empty_title),
                         message = stringResource(R.string.history_empty_message),
+                        actionLabel = stringResource(R.string.history_empty_cta),
+                        onAction = onOpenApis,
                     )
                 } else {
                     HistoryList(days = current.days, onOpenCall = onOpenCall)
@@ -133,11 +151,8 @@ private fun HistoryList(days: List<HistoryDay>, onOpenCall: (Long) -> Unit) {
 }
 
 @Composable
-private fun HistoryFilters(filter: CallLogFilter, viewModel: HistoryViewModel) {
-    Column(
-        modifier = Modifier.padding(horizontal = Dimens.screenGutter),
-        verticalArrangement = Arrangement.spacedBy(Dimens.smallGap),
-    ) {
+private fun HistoryFilters(filter: CallLogFilter, apis: List<ApiConfig>, viewModel: HistoryViewModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
         OutlinedTextField(
             value = filter.query,
             onValueChange = viewModel::onQueryChange,
@@ -150,15 +165,39 @@ private fun HistoryFilters(filter: CallLogFilter, viewModel: HistoryViewModel) {
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 unfocusedBorderColor = Color.Transparent,
             ),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.screenGutter),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
+        Row(modifier = Modifier.padding(horizontal = Dimens.screenGutter), horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
             StatusChip(R.string.history_filter_all, filter.status == null) { viewModel.onStatusFilter(null) }
             StatusChip(R.string.status_success, filter.status == CallStatus.SUCCESS) {
                 viewModel.onStatusFilter(CallStatus.SUCCESS)
             }
             StatusChip(R.string.status_failed, filter.status == CallStatus.FAILED) {
                 viewModel.onStatusFilter(CallStatus.FAILED)
+            }
+        }
+        if (apis.size > 1) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = Dimens.screenGutter),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap),
+            ) {
+                item {
+                    FilterChip(
+                        selected = filter.configId == null,
+                        onClick = { viewModel.onApiFilter(null) },
+                        label = { Text(text = stringResource(R.string.history_filter_all_apis), style = MaterialTheme.typography.labelLarge) },
+                    )
+                }
+                items(apis, key = { it.id }) { api ->
+                    FilterChip(
+                        selected = filter.configId == api.id,
+                        onClick = { viewModel.onApiFilter(api.id) },
+                        leadingIcon = { Icon(Icons.Filled.Api, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+                        label = { Text(text = api.name, style = MaterialTheme.typography.labelLarge) },
+                    )
+                }
             }
         }
     }

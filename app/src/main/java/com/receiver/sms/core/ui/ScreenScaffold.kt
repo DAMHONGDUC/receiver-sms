@@ -39,6 +39,7 @@ fun ScreenScaffold(
     snackbarHostState: SnackbarHostState? = null,
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scrollBehavior: TopAppBarScrollBehavior = if (level == ScreenLevel.TOP) {
@@ -81,6 +82,7 @@ fun ScreenScaffold(
         },
         snackbarHost = { if (snackbarHostState != null) SnackbarHost(snackbarHostState) },
         floatingActionButton = floatingActionButton,
+        bottomBar = bottomBar,
         content = content,
     )
 }

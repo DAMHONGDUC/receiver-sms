@@ -9,6 +9,8 @@ import com.receiver.sms.core.logging.AppLogger
 import com.receiver.sms.core.navigation.HistoryRoute
 import com.receiver.sms.core.time.TimeUtils
 import com.receiver.sms.core.ui.UiMessage
+import com.receiver.sms.features.apiconfig.domain.model.ApiConfig
+import com.receiver.sms.features.apiconfig.domain.usecase.ObserveApiConfigsUseCase
 import com.receiver.sms.features.calllog.domain.model.CallLog
 import com.receiver.sms.features.calllog.domain.model.CallLogFilter
 import com.receiver.sms.features.calllog.domain.model.CallStatus
@@ -52,6 +54,7 @@ sealed interface HistoryState {
 class HistoryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     observeCallLogs: ObserveCallLogsUseCase,
+    observeApiConfigs: ObserveApiConfigsUseCase,
     private val clearCallLogs: ClearCallLogsUseCase,
 ) : ViewModel() {
     private val configId: Long? = savedStateHandle.toRoute<HistoryRoute>().configId
@@ -63,6 +66,9 @@ class HistoryViewModel @Inject constructor(
     val filter: StateFlow<CallLogFilter> = mutableFilter.asStateFlow()
     val messages: Flow<UiMessage> = messageChannel.receiveAsFlow()
     val isScopedToApi: Boolean = configId != null
+    /** Tappable API filters so the user picks instead of typing a name. */
+    val apis: StateFlow<List<ApiConfig>> = observeApiConfigs()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), emptyList())
     val state: StateFlow<HistoryState> = mutableFilter
         .debounce(SEARCH_DEBOUNCE_MILLIS)
         .flatMapLatest { observeCallLogs(it) }
@@ -72,6 +78,16 @@ class HistoryViewModel @Inject constructor(
     fun onStatusFilter(status: CallStatus?) {
         AppLogger.i(TAG, "status filter - {status: $status}")
         mutableFilter.update { it.copy(status = status) }
+    }
+
+    fun onApiFilter(configId: Long?) {
+        AppLogger.i(TAG, "api filter - {configId: $configId}")
+        mutableFilter.update { it.copy(configId = configId) }
+    }
+
+    fun onClearFilters() {
+        AppLogger.i(TAG, "filters cleared")
+        mutableFilter.value = CallLogFilter.ALL
     }
 
     fun onQueryChange(query: String) {

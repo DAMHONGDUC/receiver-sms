@@ -34,11 +34,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.receiver.sms.R
 import com.receiver.sms.core.permission.PermissionStatus
+import com.receiver.sms.core.permission.rememberPermissionRequester
 import com.receiver.sms.core.permission.rememberPermissionStatus
 import com.receiver.sms.core.theme.Dimens
 import com.receiver.sms.core.ui.EmptyState
 import com.receiver.sms.core.ui.LoadingState
-import com.receiver.sms.core.ui.PermissionSetupCard
 import com.receiver.sms.core.ui.ScreenLevel
 import com.receiver.sms.core.ui.ScreenScaffold
 import com.receiver.sms.core.ui.SectionCard
@@ -48,6 +48,8 @@ import com.receiver.sms.features.dashboard.domain.model.DashboardData
 import com.receiver.sms.features.dashboard.domain.model.DashboardRange
 import com.receiver.sms.features.dashboard.presentation.components.ApiBreakdownRow
 import com.receiver.sms.features.dashboard.presentation.components.CallsBarChart
+import com.receiver.sms.features.dashboard.presentation.components.GettingStartedCard
+import com.receiver.sms.features.dashboard.presentation.components.SetupStep
 import com.receiver.sms.features.dashboard.presentation.components.StatTile
 import com.receiver.sms.features.dashboard.presentation.components.StatusHeroCard
 
@@ -64,6 +66,7 @@ fun DashboardScreen(
     val state: DashboardState by viewModel.state.collectAsStateWithLifecycle()
     val range: DashboardRange by viewModel.range.collectAsStateWithLifecycle()
     val permissions: PermissionStatus = rememberPermissionStatus()
+    val requestPermissions: () -> Unit = rememberPermissionRequester(permissions)
 
     ScreenScaffold(title = stringResource(R.string.dashboard_title), level = ScreenLevel.TOP) { padding ->
         when (val current: DashboardState = state) {
@@ -81,8 +84,9 @@ fun DashboardScreen(
                     .padding(Dimens.screenGutter),
                 verticalArrangement = Arrangement.spacedBy(Dimens.sectionGap),
             ) {
-                StatusHeroCard(current.data, onOpenSettings, onCreateApi)
-                if (!permissions.allGranted) PermissionSetupCard(permissions)
+                StatusHeroCard(current.data, onOpenSettings)
+                val steps: List<SetupStep> = setupSteps(current.data, permissions, requestPermissions, onCreateApi)
+                if (steps.any { !it.done }) GettingStartedCard(steps)
                 RangeSelector(range, viewModel::onRangeChange)
                 StatGrid(current.data)
                 SectionCard(title = stringResource(R.string.dashboard_calls_per_day), icon = Icons.Filled.BarChart) {
@@ -94,6 +98,36 @@ fun DashboardScreen(
         }
     }
 }
+
+/** New users see three steps; returning users (all done) never see the card. */
+private fun setupSteps(
+    data: DashboardData,
+    permissions: PermissionStatus,
+    onRequestPermissions: () -> Unit,
+    onCreateApi: () -> Unit,
+): List<SetupStep> = listOf(
+    SetupStep(
+        title = R.string.getting_started_step_permissions,
+        description = R.string.getting_started_step_permissions_desc,
+        done = permissions.allGranted,
+        actionLabel = R.string.setup_grant,
+        onAction = onRequestPermissions,
+    ),
+    SetupStep(
+        title = R.string.getting_started_step_api,
+        description = R.string.getting_started_step_api_desc,
+        done = data.enabledApis > 0,
+        actionLabel = R.string.getting_started_add,
+        onAction = onCreateApi,
+    ),
+    SetupStep(
+        title = R.string.getting_started_step_sms,
+        description = R.string.getting_started_step_sms_desc,
+        done = data.hasForwardedSms,
+        actionLabel = null,
+        onAction = {},
+    ),
+)
 
 @Composable
 private fun RangeSelector(range: DashboardRange, onChange: (DashboardRange) -> Unit) {

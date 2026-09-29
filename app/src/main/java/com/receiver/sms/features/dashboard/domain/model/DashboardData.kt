@@ -20,4 +20,5 @@ data class DashboardData(
     val enabledApis: Int,
     val forwardingEnabled: Boolean,
     val keepAliveEnabled: Boolean,
+    val hasForwardedSms: Boolean,
 )
