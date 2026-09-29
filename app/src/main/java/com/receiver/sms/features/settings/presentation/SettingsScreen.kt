@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,6 +37,7 @@ import com.receiver.sms.core.ui.PermissionSetupCard
 import com.receiver.sms.core.ui.ScreenLevel
 import com.receiver.sms.core.ui.ScreenScaffold
 import com.receiver.sms.core.ui.SectionCard
+import com.receiver.sms.core.ui.SwitchRow
 import com.receiver.sms.features.dispatch.domain.service.TemplateVariables
 import com.receiver.sms.features.settings.domain.model.AppSettings
 import com.receiver.sms.features.settings.domain.model.RetentionPeriod
@@ -95,17 +95,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
 
 @Composable
 internal fun SettingSwitchRow(@StringRes title: Int, @StringRes description: Int, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimens.inlineGap)) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = stringResource(title), style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = stringResource(description),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Switch(checked = checked, onCheckedChange = onChange)
-    }
+    SwitchRow(title = stringResource(title), description = stringResource(description), checked = checked, onChange = onChange)
 }
 
 @Composable

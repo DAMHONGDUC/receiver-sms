@@ -22,7 +22,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,6 +34,7 @@ import com.receiver.sms.core.constants.HttpConstants
 import com.receiver.sms.core.theme.CodeFontFamily
 import com.receiver.sms.core.theme.Dimens
 import com.receiver.sms.core.ui.SectionCard
+import com.receiver.sms.core.ui.SwitchRow
 import com.receiver.sms.features.apiconfig.domain.model.HeaderEntry
 import com.receiver.sms.features.apiconfig.domain.model.HttpMethod
 import com.receiver.sms.features.apiconfig.domain.model.MatchMode
@@ -52,14 +52,7 @@ internal fun GeneralSection(state: ApiEditorState, viewModel: ApiEditorViewModel
             label = R.string.editor_name,
             error = ApiConfigError.NAME_EMPTY.takeIf { state.visibleError(it) },
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.editor_enabled),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f),
-            )
-            Switch(checked = state.draft.enabled, onCheckedChange = viewModel::onEnabledChange)
-        }
+        SwitchRow(title = stringResource(R.string.editor_enabled), checked = state.draft.enabled, onChange = viewModel::onEnabledChange)
     }
 }
 
