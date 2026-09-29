@@ -10,8 +10,11 @@
 | No `println`, no raw `Log.*` | One logging entry point | `core/logging/AppLogger.kt` |
 | No magic numbers: spacing in `Dimens`, colours in `Palette`/`StatusColors`, limits in constants | One owner per value | `Dimens.screenGutter`, `HttpConstants.MAX_RETRIES_LIMIT` |
 | Every `Text` has an explicit `style =` from `MaterialTheme.typography` | No invisible defaults | `Text(text, style = MaterialTheme.typography.bodySmall)` |
-| All user-facing strings in `values/strings.xml` **and** `values-vi/strings.xml`; counts use `<plurals>` | Two locales, lint `PluralsCandidate` | `R.plurals.dashboard_range_days` |
+| All user-facing strings in all 6 `values*/strings.xml` (en, vi, zh-rCN, es, hi, ar) with the same format args; counts use `<plurals>` with every quantity the locale needs | Missing keys fall back to English; lint `PluralsCandidate`, `MissingQuantity` | `R.plurals.dashboard_range_days` |
+| RTL-safe UI: `start`/`end` padding, `Icons.AutoMirrored` for directional icons, numbers with units via `UiFormat` (LTR isolate), canvas drawing mirrored in RTL | Arabic layout | `CallsBarChart`, `UiFormat.duration` |
+| Dates formatted with `TimeUtils.*(…, currentLocale())` | Follows the in-app language | `CallLogRow` |
 | VM messages are `UiMessage(@StringRes)`, resolved in UI via `LocalResources` | Config-aware strings | `MessageEffect` |
-| Status is never colour-only: icon + label | Accessibility | `StatusPill` |
+| Status is never colour-only: icon + label | Accessibility | `StatusPill`, `IconBadge` check vs `!` |
+| Colours only from `MaterialTheme.colorScheme` / `AppThemeExtras.statusColors`; every screen checked in light and dark | Theme switch | `StatusHeroCard` |
 | Date/time logic only in `core/time/TimeUtils.kt` | One place for time math | `TimeUtils.startOfRange` |
 | Comments ≤ 3 lines, explain why | Short, useful comments | - |
