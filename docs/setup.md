@@ -15,6 +15,7 @@
 | Build debug APK | `./gradlew :app:assembleDebug` |
 | Install on device | `./gradlew :app:installDebug` |
 | Build release APK (R8) | `./gradlew :app:assembleRelease` |
+| Build release APK into `Release/` | `./gradlew :app:exportReleaseApk` |
 | Unit tests | `./gradlew :app:testDebugUnitTest` |
 | One test class | `./gradlew :app:testDebugUnitTest --tests '*SmsMatcherTest*'` |
 | Instrumented tests (emulator running) | `./gradlew :app:connectedDebugAndroidTest` |
@@ -31,15 +32,29 @@
 | Worker | [ApiCallWorkerTest.kt](../app/src/androidTest/java/com/receiver/sms/work/ApiCallWorkerTest.kt) | Outcome → WorkManager result, input data, attempt number |
 | End to end | [AppFlowTest.kt](../app/src/androidTest/java/com/receiver/sms/e2e/AppFlowTest.kt) | Real app with Hilt: editor, test request, SMS → WorkManager → HTTP, retry timeline, filters, delete, settings |
 
-## Local config (`local.properties`, gitignored)
+## Build config (`env/`)
+
+All build config and secrets live in `env/`; only [env.sample.properties](../env/env.sample.properties) is committed.
+
+| Step | Action |
+|---|---|
+| 1 | Copy `env/env.sample.properties` to `env/env.properties` |
+| 2 | Put the release keystore in `env/` (e.g. `env/release.jks`) |
+| 3 | Fill the keys below in `env/env.properties` |
+| 4 | Run `./gradlew :app:exportReleaseApk` → signed APK in `Release/` |
 
 | Key | Required | Purpose |
 |---|---|---|
-| `sdk.dir` | Yes (Android Studio writes it) | Android SDK path |
-| `storeFile` | No | Release keystore path; release build is unsigned without it |
-| `storePassword` | No | Keystore password |
-| `keyAlias` | No | Key alias |
-| `keyPassword` | No | Key password |
+| `RELEASE_STORE_FILE` | For signed release | Keystore file name, relative to `env/`; release build is unsigned without it |
+| `RELEASE_STORE_PASSWORD` | For signed release | Keystore password |
+| `RELEASE_KEY_ALIAS` | For signed release | Key alias |
+| `RELEASE_KEY_PASSWORD` | For signed release | Key password |
+
+| Gitignored | Why |
+|---|---|
+| `env/*` except the sample | Real values and keystores never reach git |
+| `Release/` | Exported APKs are build output |
+| `local.properties` | Only `sdk.dir`, written by Android Studio |
 
 ## First run on a device
 

@@ -10,12 +10,23 @@ plugins {
     alias(libs.plugins.room)
 }
 
-// Release signing is optional: it is read from local.properties only when present.
-val localProperties: Properties = Properties().apply {
-    val file: File = rootProject.file("local.properties")
+// All build config comes from env/env.properties (gitignored); env/env.sample.properties lists the keys.
+val envDir: File = rootProject.file("env")
+val env: Properties = Properties().apply {
+    val file: File = File(envDir, "env.properties")
     if (file.exists()) file.inputStream().use { load(it) }
 }
-val releaseStoreFile: String? = localProperties.getProperty("storeFile")
+val releaseStoreFile: File? = env.getProperty("RELEASE_STORE_FILE")
+    ?.takeIf { it.isNotBlank() }
+    ?.let { File(envDir, it) }
+    ?.takeIf { it.exists() }
+
+val appVersionName: String = "2.0.0"
+val appVersionCode: Int = 2
+
+if (releaseStoreFile == null) {
+    logger.warn("env/env.properties has no usable RELEASE_STORE_FILE: release builds will be unsigned.")
+}
 
 android {
     namespace = "com.receiver.sms"
@@ -27,8 +38,8 @@ android {
         applicationId = "com.receiver.sms"
         minSdk = 26
         targetSdk = 37
-        versionCode = 2
-        versionName = "2.0.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "com.receiver.sms.HiltTestRunner"
     }
@@ -36,10 +47,10 @@ android {
     signingConfigs {
         if (releaseStoreFile != null) {
             create("release") {
-                storeFile = file(releaseStoreFile)
-                storePassword = localProperties.getProperty("storePassword")
-                keyAlias = localProperties.getProperty("keyAlias")
-                keyPassword = localProperties.getProperty("keyPassword")
+                storeFile = releaseStoreFile
+                storePassword = env.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = env.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = env.getProperty("RELEASE_KEY_PASSWORD")
             }
         }
     }
@@ -91,6 +102,15 @@ kotlin {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+// Builds the release APK and copies it to Release/ at the repo root: ./gradlew :app:exportReleaseApk
+val releaseApkName: String = "sms-hook-$appVersionName.apk"
+tasks.register<Copy>("exportReleaseApk") {
+    dependsOn("assembleRelease")
+    from(layout.buildDirectory.dir("outputs/apk/release")) { include("*.apk") }
+    into(rootProject.layout.projectDirectory.dir("Release"))
+    rename { releaseApkName }
 }
 
 dependencies {
