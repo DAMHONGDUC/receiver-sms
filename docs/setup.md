@@ -10,18 +10,22 @@
 
 ## Commands
 
+`make` wraps the common commands (targets from [packages/script-tools](../packages/script-tools/android/android.mk), settings in [script-tools.properties](../script-tools.properties)); run `make` alone to list them.
+
 | Task | Command |
 |---|---|
-| Build debug APK | `./gradlew :app:assembleDevDebug` |
-| Install on device | `./gradlew :app:installDevDebug` |
+| Fetch the script-tools submodule (after clone) | `git submodule update --init` |
+| Build debug APK | `make build` |
+| Install on device | `make install` |
 | Build prod release APK (R8) | `./gradlew :app:assembleProdRelease` |
-| Build signed release APK into `Release/` | `./tools/build_release_apk.sh` (`FLAVOR=dev` for dev) |
-| Build signed release AAB into `Release/` | `./tools/build_release_aab.sh` (`FLAVOR=dev` for dev) |
-| Unit tests | `./gradlew :app:testDevDebugUnitTest` |
-| One test class | `./gradlew :app:testDevDebugUnitTest --tests '*SmsMatcherTest*'` |
+| Signed release APK into `Release/` (clean, unit tests, build, verify) | `make apk` (`FLAVOR=dev` for dev) |
+| Signed release AAB into `Release/` (clean, unit tests, build, verify) | `make aab` (`FLAVOR=dev` for dev) |
+| Unit tests | `make test` |
+| One test class | `make test TEST=SmsMatcherTest` |
 | Instrumented tests (emulator running) | `./gradlew :app:connectedDevDebugAndroidTest` |
 | One instrumented class | `./gradlew :app:connectedDevDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.dd.sms.hook.e2e.AppFlowTest` |
-| Lint | `./gradlew :app:lintDevDebug` |
+| Lint | `make lint` |
+| Fake SMS on emulator | `make sms SENDER=<sender> BODY="<body>"` |
 
 ## Test suites
 
@@ -60,7 +64,7 @@ All build config lives in `env/`, split by sensitivity; only `env/version.proper
 | 3 | Release keystore: `keytool -genkeypair -v -storetype PKCS12 -keystore env/release.jks -alias sms-hook -keyalg RSA -keysize 4096 -validity 10000` |
 | 4 | Create `env/key.properties` with the `DEBUG_*` and `RELEASE_*` keys below |
 | 5 | Bump `versionCode` (and `versionName`) in `env/version.properties` |
-| 6 | Run `./tools/build_release_apk.sh` or `./tools/build_release_aab.sh` → signed `sms-hook-<versionName>-<versionCode>.<apk\|aab>` in `Release/` |
+| 6 | Run `make apk` or `make aab` → signed `sms-hook-<flavor>-<versionName>-<versionCode>.<apk\|aab>` in `Release/` |
 
 | Key | File | Required | Purpose |
 |---|---|---|---|

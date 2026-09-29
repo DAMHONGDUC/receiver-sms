@@ -160,34 +160,6 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
-// Signed release builds copied to Release/ at the repo root, e.g. ./gradlew :app:exportProdReleaseAab.
-// exportReleaseApk / exportReleaseAab are the prod shortcuts; tools/build_release_*.sh wrap them.
-data class ReleaseFormat(val name: String, val buildTask: String, val outputDir: String, val extension: String)
-
-val releaseFormats: List<ReleaseFormat> = listOf(
-    ReleaseFormat(name = "Apk", buildTask = "assemble", outputDir = "outputs/apk/%s/release", extension = "apk"),
-    ReleaseFormat(name = "Aab", buildTask = "bundle", outputDir = "outputs/bundle/%sRelease", extension = "aab"),
-)
-
-for (flavor in listOf("dev", "prod")) {
-    val flavorTitle: String = flavor.replaceFirstChar { it.uppercase() }
-    val flavorTag: String = if (flavor == "prod") "" else "-$flavor"
-
-    for (format in releaseFormats) {
-        val fileName: String = "sms-hook$flavorTag-$appVersionName-$appVersionCode.${format.extension}"
-
-        tasks.register<Copy>("export${flavorTitle}Release${format.name}") {
-            dependsOn("${format.buildTask}${flavorTitle}Release")
-            from(layout.buildDirectory.dir(format.outputDir.format(flavor))) { include("*.${format.extension}") }
-            into(rootProject.layout.projectDirectory.dir("Release"))
-            // String overload, not a lambda: a lambda captures the build script and breaks the configuration cache.
-            rename(".*\\.${format.extension}", fileName)
-        }
-    }
-}
-tasks.register("exportReleaseApk") { dependsOn("exportProdReleaseApk") }
-tasks.register("exportReleaseAab") { dependsOn("exportProdReleaseAab") }
-
 dependencies {
     // androidx core
     implementation(libs.androidx.core.ktx)
